@@ -4,7 +4,7 @@
  Author:         Penatoliy
 
  Script Function:
-	Arma 3 artyllery AI computer
+	Arma 3 artyllery calculator
 
 #ce ----------------------------------------------------------------------------
 
