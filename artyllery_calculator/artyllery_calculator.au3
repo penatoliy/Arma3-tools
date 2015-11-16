@@ -19,7 +19,7 @@ gui1()
 
 Func gui1()
    $hGUI1 = GUICreate("Баллистический калькулятор", 500, 400)
-   $hButton1 = GUICtrlCreateButton("Расчитать", 20, 360, 80, 30)
+   $hButton1 = GUICtrlCreateButton("Рассчитать", 20, 360, 80, 30)
    $hButton2 = GUICtrlCreateButton("Позиция...", 20, 10, 80, 30)
 
    $Slider1 = GUICtrlCreateSlider(178, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
