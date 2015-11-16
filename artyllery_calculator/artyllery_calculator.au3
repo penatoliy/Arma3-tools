@@ -1,5 +1,9 @@
-﻿#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Icon=parabolic_128px_1161944_easyicon.net.ico
+﻿; *** Start added by AutoIt3Wrapper ***
+#include <SliderConstants.au3>
+#include <StaticConstants.au3>
+; *** End added by AutoIt3Wrapper ***
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=doc_math_128px_1086911_easyicon.net.ico
 #AutoIt3Wrapper_Outfile=artyllery_calculator_32.exe
 #AutoIt3Wrapper_Outfile_x64=artyllery_calculator_64.exe
 #AutoIt3Wrapper_Compression=4
@@ -11,6 +15,7 @@
 #AutoIt3Wrapper_Res_Fileversion=1.0.0.0
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
+#AutoIt3Wrapper_Add_Constants=n
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 #cs ----------------------------------------------------------------------------
 
