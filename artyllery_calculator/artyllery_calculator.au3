@@ -90,7 +90,7 @@ Func gui1()
 			GUISetState(@SW_DISABLE, $hGUI1)
 			gui2()
 			GUISetState(@SW_ENABLE, $hGUI1)
-			GUISetState(@SW_RESTORE, $hGUI1)
+			WinActivate($hGUI1)
 		 Case $Slider1
 			GUICtrlSetPos($Graphic2,186+GUICtrlRead($Slider1)*2.98, 334-GUICtrlRead($Slider2)*-2.98)
 		 Case $Slider2
