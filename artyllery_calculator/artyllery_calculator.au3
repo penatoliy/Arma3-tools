@@ -18,7 +18,7 @@ Global $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $
 gui1()
 
 Func gui1()
-   $hGUI1 = GUICreate("Артиллерийский компьютер", 500, 400)
+   $hGUI1 = GUICreate("Баллистический калькулятор", 500, 400)
    $hButton1 = GUICtrlCreateButton("Расчитать", 20, 360, 80, 30)
    $hButton2 = GUICtrlCreateButton("Позиция...", 20, 10, 80, 30)
 
@@ -35,8 +35,10 @@ Func gui1()
    GUICtrlSetLimit($Input2, 5000, 0)
    GUICtrlCreateLabel("Высота:", 240, 13, 50, 20, $SS_LEFT)
 
-   $Input5 = GUICtrlCreateInput("243", 80, 65, 45, 20, $ES_NUMBER)
+   $Input5 = GUICtrlCreateInput("243", 80, 65, 40, 20, $ES_NUMBER)
+   $Input6 = GUICtrlCreateInput("00", 125, 65, 20, 20, $ES_NUMBER)
    GUICtrlSetLimit($Input5, 1000, 0)
+   GUICtrlSetLimit($Input6, 99, 0)
    GUICtrlCreateLabel("Скорость снаряда:", 10, 60, 50, 40, $SS_LEFT)
 
    $Graphic1 = GUICtrlCreateGraphic(190, 40)
@@ -44,6 +46,9 @@ Func gui1()
 
    $Graphic2 = GUICtrlCreateGraphic(186, 334)
    GUICtrlSetGraphic($Graphic2, $GUI_GR_ELLIPSE, 0, 0, 10, 10)
+
+   $Graphic3 = GUICtrlCreateGraphic(122, 80)
+   GUICtrlSetGraphic($Graphic3, $GUI_GR_DOT, 0, 0)
 
    $Label_range = GUICtrlCreateLabel("Дальность:", 10, 120, 120, 20, $SS_LEFT)
    $Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 140, 120, 20, $SS_LEFT)
@@ -67,8 +72,8 @@ Func gui1()
 			   $Input_ty = (StringRight(GUICtrlRead($Input1), 3)*100)+(GUICtrlRead($Slider2)*-1)
 			   $Altitude = GUICtrlRead($Input2) - $Input_aalt
 			   $Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-			   $Solution_0 = Solution_0($Range, $Altitude, GUICtrlRead($Input5))
-			   $Solution_1 = Solution_1($Range, $Altitude, GUICtrlRead($Input5))
+			   $Solution_0 = Solution_0($Range, $Altitude, GUICtrlRead($Input5)&"."& GUICtrlRead($Input6))
+			   $Solution_1 = Solution_1($Range, $Altitude,  GUICtrlRead($Input5)&"."& GUICtrlRead($Input6))
 			   GUICtrlSetData($Label_range, "Дальность:      " & Round($Range,0))
 			   GUICtrlSetData($Label_altitude, "Возвышение:   " &  Round($Altitude,0))
 			   GUICtrlSetData($Label_azimut, "Азимут:            " & Round(Azimuth_to($Input_ax,$Input_ay,$Input_tx,$Input_ty),2))
