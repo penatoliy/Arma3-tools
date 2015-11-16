@@ -45,10 +45,15 @@ Func gui1()
    $Graphic2 = GUICtrlCreateGraphic(186, 334)
    GUICtrlSetGraphic($Graphic2, $GUI_GR_ELLIPSE, 0, 0, 10, 10)
 
-   $Label_range = GUICtrlCreateLabel("Дальность:", 10, 150, 120, 20, $SS_LEFT)
-   $Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 170, 120, 20, $SS_LEFT)
+   $Label_range = GUICtrlCreateLabel("Дальность:", 10, 120, 120, 20, $SS_LEFT)
+   $Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 140, 120, 20, $SS_LEFT)
+   $Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 160, 120, 20, $SS_LEFT)
+
    $Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 200, 120, 20, $SS_LEFT)
-   $Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 220, 120, 20, $SS_LEFT)
+   $Label_solution_0_ETA = GUICtrlCreateLabel("Время:", 10, 220, 120, 20, $SS_LEFT)
+
+   $Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 260, 120, 20, $SS_LEFT)
+   $Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 280, 120, 20, $SS_LEFT)
 
    GUISetState()
 
@@ -61,14 +66,19 @@ Func gui1()
 			   $Input_tx = (StringLeft(GUICtrlRead($Input1), 3)*100)+(GUICtrlRead($Slider1))
 			   $Input_ty = (StringRight(GUICtrlRead($Input1), 3)*100)+(GUICtrlRead($Slider2)*-1)
 			   $Altitude = GUICtrlRead($Input2) - $Input_aalt
-			   $Range = range_finder($Input_tx, $Input_ty, $Input_ax, $Input_ay)
-			   $Solution_0 = solution_0($Range, $Altitude, GUICtrlRead($Input5))
-			   $Solution_1 = solution_1($Range, $Altitude, GUICtrlRead($Input5))
+			   $Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+			   $Solution_0 = Solution_0($Range, $Altitude, GUICtrlRead($Input5))
+			   $Solution_1 = Solution_1($Range, $Altitude, GUICtrlRead($Input5))
 			   GUICtrlSetData($Label_range, "Дальность:      " & Round($Range,0))
 			   GUICtrlSetData($Label_altitude, "Возвышение:   " &  Round($Altitude,0))
+			   GUICtrlSetData($Label_azimut, "Азимут:            " & Round(Azimuth_to($Input_ax,$Input_ay,$Input_tx,$Input_ty),2))
+
 			   GUICtrlSetData($Label_solution_0, "Навесная:        " & Round($Solution_0,2))
+			   GUICtrlSetData($Label_solution_0_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5),$Solution_0),0))
+
 			   GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_1,2))
-			Else
+			   GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5),$Solution_1),0))
+	        Else
 			   MsgBox("", "Ошибка", "Неверно введён квадрат цели")
 			EndIf
 		 Case $hButton2
@@ -142,18 +152,43 @@ Func gui2()
    WEnd
 EndFunc   ;==>gui2
 
-Func range_finder($Input_tx, $Input_ty, $Input_ax, $Input_ay)
+Func Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
    Local $Range = Sqrt(($Input_tx-$Input_ax)^2+($Input_ty-$Input_ay)^2)
    Return $Range
 EndFunc
 
-Func solution_0($Range, $Altitude, $Velocity)
+Func Time_to($Range, $Velocity, $Solution)
+   Local $ETA = ($Range/($Velocity*Cos(_Radian($Solution))))
+   Return $ETA
+EndFunc
+
+Func Azimuth_to($Input_tx, $Input_ty, $Input_ax, $Input_ay)
+	Local $Input_dx = $Input_ax - $Input_tx
+	Local $Input_dy = $Input_ay - $Input_ty
+	Local $Azimuth_to
+	If $Input_dx > 0 Then
+		$Azimuth_to = 90 - _Degree(ATan($Input_dy/$Input_dx))
+	Else
+		If $Input_dx < 0 Then
+			$Azimuth_to = 270 - _Degree(ATan($Input_dy/$Input_dx))
+		Else
+			If $Input_dy > 0 Then
+				$Azimuth_to = 0
+			Else
+				If $Input_dy < 0 Then $Azimuth_to = 180
+			EndIf
+		EndIf
+	EndIf
+	Return $Azimuth_to
+EndFunc
+
+Func Solution_0($Range, $Altitude, $Velocity)
 	Local Const $g = 9.80665
 	Local $Solution = _Degree(ATan(($Velocity^2+Sqrt($Velocity^4-$g*($g*$Range^2+2*$Altitude*$Velocity^2)))/($g*$Range)))
 	Return $Solution
 EndFunc
 
-Func solution_1($Range, $Altitude, $Velocity)
+Func Solution_1($Range, $Altitude, $Velocity)
 	Local Const $g = 9.80665
 	Local $Solution = _Degree(ATan(($Velocity^2-Sqrt($Velocity^4-$g*($g*$Range^2+2*$Altitude*$Velocity^2)))/($g*$Range)))
 	Return $Solution
