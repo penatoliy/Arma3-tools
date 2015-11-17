@@ -60,6 +60,13 @@ Func gui1()
 	GUICtrlSetLimit($Input6, 99, 0)
 	GUICtrlCreateLabel("Скорость снаряда:", 10, 60, 50, 40, $SS_LEFT)
 
+    $Input7 = GUICtrlCreateInput("360", 80, 95, 40, 20, $ES_NUMBER)
+	$Input8 = GUICtrlCreateInput("0", 125, 95, 20, 20, $ES_NUMBER)
+	GUICtrlSetLimit($Input7, 360, 0)
+	GUICtrlSetLimit($Input8, 90, 0)
+	GUICtrlCreateLabel("Угол места:", 10, 90, 50, 40, $SS_LEFT)
+
+
 	$Graphic1 = GUICtrlCreateGraphic(190, 40)
 	GUICtrlSetGraphic($Graphic1, $GUI_GR_RECT, 0, 0, 300, 300)
 
@@ -69,15 +76,16 @@ Func gui1()
 	$Graphic3 = GUICtrlCreateGraphic(122, 80)
 	GUICtrlSetGraphic($Graphic3, $GUI_GR_DOT, 0, 0)
 
-	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 120, 130, 20, $SS_LEFT)
-	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 140, 130, 20, $SS_LEFT)
-	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 160, 120, 20, $SS_LEFT)
 
-	$Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 200, 130, 20, $SS_LEFT)
-	$Label_solution_0_ETA = GUICtrlCreateLabel("Время:", 10, 220, 130, 20, $SS_LEFT)
+	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 140, 130, 20, $SS_LEFT)
+	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 160, 130, 20, $SS_LEFT)
+	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 180, 120, 20, $SS_LEFT)
 
-	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 260, 130, 20, $SS_LEFT)
-	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 280, 130, 20, $SS_LEFT)
+	$Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 220, 130, 20, $SS_LEFT)
+	$Label_solution_0_ETA = GUICtrlCreateLabel("Время:", 10, 240, 130, 20, $SS_LEFT)
+
+	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 280, 130, 20, $SS_LEFT)
+	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 300, 130, 20, $SS_LEFT)
 
 	GUISetState()
 
@@ -217,3 +225,8 @@ Func Solution_1($Range, $Altitude, $Velocity)
 	Local $Solution = _Degree(ATan(($Velocity ^ 2 - Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
 	Return $Solution
 EndFunc   ;==>Solution_1
+
+Func Solution_fix($Azimuth_to, $Solution_in, $Azimuth_fix, $Angle)
+   Local $Solution = _Degree(Cos($Azimuth_to - $Azimuth_fix)) * $Angle
+   Return $Solution
+EndFunc
