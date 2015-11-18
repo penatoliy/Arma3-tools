@@ -19,13 +19,13 @@
 #include <StaticConstants.au3>
 ; *** End added by AutoIt3Wrapper ***
 #cs ----------------------------------------------------------------------------
-	
+
 	AutoIt Version: 3.3.14.2
 	Author:         Penatoliy
-	
+
 	Script Function:
 	Arma 3 artyllery calculator
-	
+
 #ce ----------------------------------------------------------------------------
 
 #include <GUIConstantsEx.au3>
@@ -33,11 +33,11 @@
 #include <EditConstants.au3>
 #include <Math.au3>
 
-Global $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0
+Global $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
 
-gui1()
+Gui1()
 
-Func gui1()
+Func Gui1()
 	$hGUI1 = GUICreate("Баллистический калькулятор", 500, 400)
 	$hButton1 = GUICtrlCreateButton("Рассчитать", 20, 360, 80, 30)
 	$hButton2 = GUICtrlCreateButton("Позиция...", 20, 10, 80, 30)
@@ -48,30 +48,22 @@ Func gui1()
 	GUICtrlSetLimit($Slider2, 0, -100)
 
 	$Input1 = GUICtrlCreateInput("", 440, 10, 45, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input1, 999999, 000000)
 	GUICtrlCreateLabel("Квадрат:", 380, 13, 50, 20, $SS_LEFT)
 
 	$Input2 = GUICtrlCreateInput("0", 300, 10, 45, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input2, 5000, 0)
 	GUICtrlCreateLabel("Высота:", 240, 13, 50, 20, $SS_LEFT)
 
 	$Input5 = GUICtrlCreateInput("243", 80, 65, 40, 20, $ES_NUMBER)
 	$Input6 = GUICtrlCreateInput("00", 125, 65, 20, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input5, 1000, 0)
-	GUICtrlSetLimit($Input6, 99, 0)
-	GUICtrlCreateLabel("Скорость снаряда:", 10, 60, 50, 40, $SS_LEFT)
+	GUICtrlCreateLabel("Скорость снаряда:", 10, 60, 55, 40, $SS_LEFT)
 
-	$Input7 = GUICtrlCreateInput("360", 80, 95, 40, 20, $ES_NUMBER)
+	$Input7 = GUICtrlCreateInput("0", 80, 95, 40, 20, $ES_NUMBER)
 	$Input8 = GUICtrlCreateInput("00", 125, 95, 20, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input7, 360, 0)
-	GUICtrlSetLimit($Input8, 99, 0)
-	GUICtrlCreateLabel("Азимут места:", 10, 90, 50, 40, $SS_LEFT)
+	GUICtrlCreateLabel("Азимут коррекции:", 10, 90, 60, 40, $SS_LEFT)
 
 	$Input9 = GUICtrlCreateInput("0", 80, 125, 40, 20, $ES_NUMBER)
 	$Input10 = GUICtrlCreateInput("00", 125, 125, 20, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input9, 30, 0)
-	GUICtrlSetLimit($Input10, 99, 0)
-	GUICtrlCreateLabel("Угол места:", 10, 120, 50, 40, $SS_LEFT)
+	GUICtrlCreateLabel("Угол коррекции:", 10, 120, 60, 40, $SS_LEFT)
 
 
 	$Graphic1 = GUICtrlCreateGraphic(190, 40)
@@ -80,24 +72,24 @@ Func gui1()
 	$Graphic2 = GUICtrlCreateGraphic(186, 334)
 	GUICtrlSetGraphic($Graphic2, $GUI_GR_ELLIPSE, 0, 0, 10, 10)
 
-	$Graphic3 = GUICtrlCreateGraphic(122, 80)
-	GUICtrlSetGraphic($Graphic3, $GUI_GR_DOT, 0, 0)
-
-	$Graphic4 = GUICtrlCreateGraphic(122, 110)
-	GUICtrlSetGraphic($Graphic4, $GUI_GR_DOT, 0, 0)
-
-	$Graphic5 = GUICtrlCreateGraphic(122, 140)
+	$Graphic5 = GUICtrlCreateGraphic(122, 80)
 	GUICtrlSetGraphic($Graphic5, $GUI_GR_DOT, 0, 0)
 
-	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 160, 130, 20, $SS_LEFT)
-	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 180, 130, 20, $SS_LEFT)
-	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 200, 120, 20, $SS_LEFT)
+	$Graphic6 = GUICtrlCreateGraphic(122, 110)
+	GUICtrlSetGraphic($Graphic6, $GUI_GR_DOT, 0, 0)
+
+	$Graphic7 = GUICtrlCreateGraphic(122, 140)
+	GUICtrlSetGraphic($Graphic7, $GUI_GR_DOT, 0, 0)
+
+	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 170, 130, 20, $SS_LEFT)
+	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 190, 130, 20, $SS_LEFT)
+	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 210, 120, 20, $SS_LEFT)
 
 	$Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 240, 130, 20, $SS_LEFT)
 	$Label_solution_0_ETA = GUICtrlCreateLabel("Время:", 10, 260, 130, 20, $SS_LEFT)
 
-	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 300, 130, 20, $SS_LEFT)
-	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 320, 130, 20, $SS_LEFT)
+	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 290, 130, 20, $SS_LEFT)
+	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 310, 130, 20, $SS_LEFT)
 
 	GUISetState()
 
@@ -106,7 +98,7 @@ Func gui1()
 			Case $GUI_EVENT_CLOSE
 				ExitLoop
 			Case $hButton1
-				If StringLen(GUICtrlRead($Input1)) = 6 Then
+				If StringLen(GUICtrlRead($Input1)) = 6 And StringLen($Square_ax&$Square_ay) = 6 Then
 					$Input_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
 					$Input_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
 					$Altitude = GUICtrlRead($Input2) - $Input_aalt
@@ -126,11 +118,11 @@ Func gui1()
 					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_fix_1, 2))
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution_1), 0))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат цели")
+					MsgBox("", "Ошибка", "Неверно введён квадрат цели или позиции")
 				EndIf
 			Case $hButton2
 				GUISetState(@SW_DISABLE, $hGUI1)
-				gui2()
+				Gui2()
 				GUISetState(@SW_ENABLE, $hGUI1)
 				WinActivate($hGUI1)
 			Case $Slider1
@@ -141,9 +133,10 @@ Func gui1()
 	WEnd
 EndFunc   ;==>gui1
 
-Func gui2()
+Func Gui2()
 	$hGUI2 = GUICreate("Установка позиции батареи", 400, 440)
 	$hButton3 = GUICtrlCreateButton("Установить", 10, 400, 80, 30)
+	$hButton4 = GUICtrlCreateButton("Угловая привязка...", 200, 400, 120, 30)
 
 	$Slider3 = GUICtrlCreateSlider(78, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
 	GUICtrlSetLimit($Slider3, 100, 0)
@@ -151,12 +144,10 @@ Func gui2()
 	GUICtrlSetLimit($Slider4, 0, -100)
 
 	$Input3 = GUICtrlCreateInput("", 340, 10, 45, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input3, 999999, 000000)
-	GUICtrlCreateLabel('Квадрат:', 280, 13, 50, 20, $SS_LEFT)
+	GUICtrlCreateLabel("Квадрат:", 280, 13, 50, 20, $SS_LEFT)
 
 	$Input4 = GUICtrlCreateInput("", 200, 10, 45, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input4, 5000, 0)
-	GUICtrlCreateLabel('Высота:', 140, 13, 50, 20, $SS_LEFT)
+	GUICtrlCreateLabel("Высота:", 140, 13, 50, 20, $SS_LEFT)
 
 	$Graphic3 = GUICtrlCreateGraphic(90, 40)
 	GUICtrlSetGraphic($Graphic3, $GUI_GR_RECT, 0, 0, 300, 300)
@@ -184,11 +175,27 @@ Func gui2()
 					$Square_pax = GUICtrlRead($Slider3)
 					$Square_pay = GUICtrlRead($Slider4)
 					$Input_aalt = GUICtrlRead($Input4)
-					$Input_ax = ($Square_ax * 100) + (GUICtrlRead($Slider3))
-					$Input_ay = ($Square_ay * 100) + (GUICtrlRead($Slider4) * -1)
+					$Input_ax = ($Square_ax * 100) + ($Square_pax)
+					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
 					GUIDelete($hGUI2)
 					ExitLoop
 				Else
+					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
+			    EndIf
+			Case $hButton4
+				If StringLen(GUICtrlRead($Input3)) = 6 Then
+					$Square_ax = StringLeft(GUICtrlRead($Input3), 3)
+					$Square_ay = StringRight(GUICtrlRead($Input3), 3)
+					$Square_pax = GUICtrlRead($Slider3)
+					$Square_pay = GUICtrlRead($Slider4)
+					$Input_aalt = GUICtrlRead($Input4)
+					$Input_ax = ($Square_ax * 100) + ($Square_pax)
+					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
+				    GUISetState(@SW_DISABLE, $hGUI2)
+				    Gui3()
+				    GUISetState(@SW_ENABLE, $hGUI2)
+				    WinActivate($hGUI2)
+			    Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
 				EndIf
 			Case $Slider3
@@ -197,7 +204,90 @@ Func gui2()
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 		EndSwitch
 	WEnd
-EndFunc   ;==>gui2
+ EndFunc   ;==>gui2
+
+ Func Gui3()
+	$hGUI3 = GUICreate("Вычисление коррекции по двум ореентирам", 400, 440)
+
+	$hButton5 = GUICtrlCreateButton("Рассчитать", 10, 400, 80, 30)
+    $Label_fix = GUICtrlCreateLabel("", 100, 408, 80, 20, $SS_LEFT)
+
+	$hButton6 = GUICtrlCreateButton("Задать первый", 200, 400, 90, 30)
+	$Label_fix_0 = GUICtrlCreateLabel("", 210, 381, 80, 20, $SS_LEFT)
+
+	$hButton7 = GUICtrlCreateButton("Задать второй", 300, 400, 90, 30)
+	$Label_fix_1 = GUICtrlCreateLabel("", 310, 381, 80, 20, $SS_LEFT)
+
+	$Slider5 = GUICtrlCreateSlider(78, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
+	GUICtrlSetLimit($Slider5, 100, 0)
+	$Slider6 = GUICtrlCreateSlider(48, 28, 30, 324, BitOR($TBS_VERT, $TBS_AUTOTICKS))
+	GUICtrlSetLimit($Slider6, 0, -100)
+
+	$Input11 = GUICtrlCreateInput("", 340, 10, 45, 20, $ES_NUMBER)
+	GUICtrlCreateLabel("Квадрат:", 280, 13, 50, 20, $SS_LEFT)
+
+	$Input12 = GUICtrlCreateInput("", 200, 10, 45, 20, $ES_NUMBER)
+	GUICtrlCreateLabel("Высота:", 140, 13, 50, 20, $SS_LEFT)
+
+	$Input13 = GUICtrlCreateInput("", 60, 10, 45, 20, $ES_NUMBER)
+    $Input14 = GUICtrlCreateInput("", 110, 10, 20, 20, $ES_NUMBER)
+	GUICtrlCreateLabel("Угол:", 20, 13, 30, 20, $SS_LEFT)
+
+	$Graphic8 = GUICtrlCreateGraphic(90, 40)
+	GUICtrlSetGraphic($Graphic8, $GUI_GR_RECT, 0, 0, 300, 300)
+
+	$Graphic9 = GUICtrlCreateGraphic(86, 334)
+	GUICtrlSetGraphic($Graphic9, $GUI_GR_ELLIPSE, 0, 0, 10, 10)
+
+	$Graphic10 = GUICtrlCreateGraphic(107, 25)
+	GUICtrlSetGraphic($Graphic10, $GUI_GR_DOT, 0, 0)
+
+	GUISetState()
+
+	While 1
+		Switch GUIGetMsg()
+			Case $GUI_EVENT_CLOSE
+				GUIDelete($hGUI3)
+				ExitLoop
+			Case $hButton5
+			   GUICtrlSetData($Input7, 100)
+			Case $hButton6
+			   If StringLen(GUICtrlRead($Input11)) = 6 Then
+					$Square_ox_0 = StringLeft(GUICtrlRead($Input11), 3)
+					$Square_oy_0 = StringRight(GUICtrlRead($Input11), 3)
+					$Square_pox_0 = GUICtrlRead($Slider5)
+					$Square_poy_0 = GUICtrlRead($Slider6)
+					$Input_oalt_0 = GUICtrlRead($Input12)
+					$Input_ox_0 = ($Square_ox_0 * 100) + ($Square_pox_0)
+					$Input_oy_0 = ($Square_oy_0 * 100) + ($Square_poy_0 * -1)
+					$Range_o_0 = Range_finder($Input_ax, $Input_ay, $Input_ox_0, $Input_oy_0)
+					$Altitude_o_0 = GUICtrlRead($Input12) - $Input_aalt
+					$Angle_o_0 = _Degree(ATan($Altitude_o_0 / $Range_o_0))
+				Else
+					MsgBox("", "Ошибка", "Неверно введён квадрат ореентира")
+			    EndIf
+			Case $hButton7
+			   If StringLen(GUICtrlRead($Input11)) = 6 Then
+					$Square_ox_1 = StringLeft(GUICtrlRead($Input11), 3)
+					$Square_oy_1 = StringRight(GUICtrlRead($Input11), 3)
+					$Square_pox_1 = GUICtrlRead($Slider5)
+					$Square_poy_1 = GUICtrlRead($Slider6)
+					$Input_oalt_1 = GUICtrlRead($Input12)
+					$Input_ox_1 = ($Square_ox_1 * 100) + ($Square_pox_1)
+					$Input_oy_1 = ($Square_oy_1 * 100) + ($Square_poy_1 * -1)
+				    $Range_o_1 = Range_finder($Input_ax, $Input_ay, $Input_ox_1, $Input_oy_1)
+					$Altitude_o_1 = GUICtrlRead($Input12) - $Input_aalt
+					$Angle_o_1 = _Degree(ATan($Altitude_o_1 / $Range_o_1))
+				Else
+					MsgBox("", "Ошибка", "Неверно введён квадрат ореентира")
+			    EndIf
+			Case $Slider5
+				GUICtrlSetPos($Graphic9, 86 + GUICtrlRead($Slider5) * 2.98, 334 - GUICtrlRead($Slider6) * -2.98)
+			Case $Slider6
+				GUICtrlSetPos($Graphic9, 86 + GUICtrlRead($Slider5) * 2.98, 334 - GUICtrlRead($Slider6) * -2.98)
+		EndSwitch
+	WEnd
+EndFunc   ;==>gui3
 
 Func Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 	Local $Range = Sqrt(($Input_tx - $Input_ax) ^ 2 + ($Input_ty - $Input_ay) ^ 2)
