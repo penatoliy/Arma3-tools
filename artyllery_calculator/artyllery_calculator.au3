@@ -11,6 +11,7 @@
 #AutoIt3Wrapper_Res_Fileversion=1.0.2.0
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
+#AutoIt3Wrapper_Add_Constants=n
 #AutoIt3Wrapper_Run_Tidy=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 ; *** Start added by AutoIt3Wrapper ***
@@ -68,8 +69,8 @@ Func gui1()
 
 	$Input9 = GUICtrlCreateInput("0", 80, 125, 40, 20, $ES_NUMBER)
 	$Input10 = GUICtrlCreateInput("00", 125, 125, 20, 20, $ES_NUMBER)
-	GUICtrlSetLimit($Input7, 30, 0)
-	GUICtrlSetLimit($Input8, 99, 0)
+	GUICtrlSetLimit($Input9, 30, 0)
+	GUICtrlSetLimit($Input10, 99, 0)
 	GUICtrlCreateLabel("Угол места:", 10, 120, 50, 40, $SS_LEFT)
 
 
@@ -244,3 +245,33 @@ Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle)
 	Local $Solution = $Solution_to - Cos(_Radian($Azimuth_to - $Azimuth_fix)) * $Angle
 	Return $Solution
 EndFunc   ;==>Solution_fix
+
+Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1)
+	Local $Dot_x_0 = $Dot_rg_0 * Cos(_Radian($Dot_az_0))
+	Local $Dot_y_0 = $Dot_rg_0 * Sin(_Radian($Dot_az_0))
+	Local $Dot_x_1 = $Dot_rg_1 * Cos(_Radian($Dot_az_1))
+	Local $Dot_y_1 = $Dot_rg_1 * Sin(_Radian($Dot_az_1))
+
+	Local Const $r = 30
+	Local $d = Sqrt(($Dot_x_0 - $Dot_x_1) ^ 2 + ($Dot_y_0 - $Dot_y_1) ^ 2)
+	Local $h = Sqrt($r ^ 2 - ($d / 2) ^ 2)
+
+	Local $x0 = $Dot_x_0 + ($Dot_x_1 - $Dot_x_0) / 2 + $h * ($Dot_y_1 - $Dot_y_0) / $d
+	Local $y0 = $Dot_y_0 + ($Dot_y_1 - $Dot_y_0) / 2 - $h * ($Dot_x_1 - $Dot_x_0) / $d
+
+	Local $x1 = $Dot_x_0 + ($Dot_x_1 - $Dot_x_0) / 2 - $h * ($Dot_y_1 - $Dot_y_0) / $d
+	Local $y1 = $Dot_y_0 + ($Dot_y_1 - $Dot_y_0) / 2 + $h * ($Dot_x_1 - $Dot_x_0) / $d
+
+	Local $Corr_rg_0 = Sqrt($x0 ^ 2 + $y0 ^ 2)
+	Local $Corr_az_0 = _Degree(ACos($x0 / $Corr_rg_0))
+
+	Local $Corr_rg_1 = Sqrt($x1 ^ 2 + $y1 ^ 2)
+	Local $Corr_az_1 = _Degree(ACos($x1 / $Corr_rg_1))
+
+	If $Corr_rg_1 < $Corr_rg_0 Then
+		$Solution = ($Corr_az_1 & "@" & $Corr_rg_1)
+	Else
+		$Solution = ($Corr_az_0 & "@" & $Corr_rg_0)
+	EndIf
+	Return $Solution
+EndFunc   ;==>Geo_fix
