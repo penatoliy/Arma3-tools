@@ -1,8 +1,4 @@
-﻿; *** Start added by AutoIt3Wrapper ***
-#include <SliderConstants.au3>
-#include <StaticConstants.au3>
-; *** End added by AutoIt3Wrapper ***
-#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+﻿#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=doc_math_128px_1086911_easyicon.net.ico
 #AutoIt3Wrapper_Outfile=artyllery_calculator_32.exe
 #AutoIt3Wrapper_Outfile_x64=artyllery_calculator_64.exe
@@ -12,19 +8,24 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.0.0.0
+#AutoIt3Wrapper_Res_Fileversion=1.0.1.0
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
 #AutoIt3Wrapper_Add_Constants=n
+#AutoIt3Wrapper_Run_Tidy=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
+; *** Start added by AutoIt3Wrapper ***
+#include <SliderConstants.au3>
+#include <StaticConstants.au3>
+; *** End added by AutoIt3Wrapper ***
 #cs ----------------------------------------------------------------------------
-
+	
 	AutoIt Version: 3.3.14.2
 	Author:         Penatoliy
-
+	
 	Script Function:
 	Arma 3 artyllery calculator
-
+	
 #ce ----------------------------------------------------------------------------
 
 #include <GUIConstantsEx.au3>
@@ -60,11 +61,17 @@ Func gui1()
 	GUICtrlSetLimit($Input6, 99, 0)
 	GUICtrlCreateLabel("Скорость снаряда:", 10, 60, 50, 40, $SS_LEFT)
 
-    $Input7 = GUICtrlCreateInput("360", 80, 95, 40, 20, $ES_NUMBER)
-	$Input8 = GUICtrlCreateInput("0", 125, 95, 20, 20, $ES_NUMBER)
+	$Input7 = GUICtrlCreateInput("360", 80, 95, 40, 20, $ES_NUMBER)
+	$Input8 = GUICtrlCreateInput("00", 125, 95, 20, 20, $ES_NUMBER)
 	GUICtrlSetLimit($Input7, 360, 0)
-	GUICtrlSetLimit($Input8, 90, 0)
-	GUICtrlCreateLabel("Угол места:", 10, 90, 50, 40, $SS_LEFT)
+	GUICtrlSetLimit($Input8, 99, 0)
+	GUICtrlCreateLabel("Азимут места:", 10, 90, 50, 40, $SS_LEFT)
+
+	$Input9 = GUICtrlCreateInput("0", 80, 125, 40, 20, $ES_NUMBER)
+	$Input10 = GUICtrlCreateInput("00", 125, 125, 20, 20, $ES_NUMBER)
+	GUICtrlSetLimit($Input7, 30, 0)
+	GUICtrlSetLimit($Input8, 99, 0)
+	GUICtrlCreateLabel("Угол места:", 10, 120, 50, 40, $SS_LEFT)
 
 
 	$Graphic1 = GUICtrlCreateGraphic(190, 40)
@@ -76,16 +83,21 @@ Func gui1()
 	$Graphic3 = GUICtrlCreateGraphic(122, 80)
 	GUICtrlSetGraphic($Graphic3, $GUI_GR_DOT, 0, 0)
 
+	$Graphic4 = GUICtrlCreateGraphic(122, 110)
+	GUICtrlSetGraphic($Graphic4, $GUI_GR_DOT, 0, 0)
 
-	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 140, 130, 20, $SS_LEFT)
-	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 160, 130, 20, $SS_LEFT)
-	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 180, 120, 20, $SS_LEFT)
+	$Graphic5 = GUICtrlCreateGraphic(122, 140)
+	GUICtrlSetGraphic($Graphic5, $GUI_GR_DOT, 0, 0)
 
-	$Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 220, 130, 20, $SS_LEFT)
-	$Label_solution_0_ETA = GUICtrlCreateLabel("Время:", 10, 240, 130, 20, $SS_LEFT)
+	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 160, 130, 20, $SS_LEFT)
+	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 180, 130, 20, $SS_LEFT)
+	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 200, 120, 20, $SS_LEFT)
 
-	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 280, 130, 20, $SS_LEFT)
-	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 300, 130, 20, $SS_LEFT)
+	$Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 240, 130, 20, $SS_LEFT)
+	$Label_solution_0_ETA = GUICtrlCreateLabel("Время:", 10, 260, 130, 20, $SS_LEFT)
+
+	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 300, 130, 20, $SS_LEFT)
+	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 320, 130, 20, $SS_LEFT)
 
 	GUISetState()
 
@@ -99,16 +111,19 @@ Func gui1()
 					$Input_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
 					$Altitude = GUICtrlRead($Input2) - $Input_aalt
 					$Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+					$Azimuth = Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 					$Solution_0 = Solution_0($Range, $Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
 					$Solution_1 = Solution_1($Range, $Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
+					$Solution_fix_0 = Solution_fix($Azimuth, $Solution_0, GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
+					$Solution_fix_1 = Solution_fix($Azimuth, $Solution_1, GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
 					GUICtrlSetData($Label_altitude, "Возвышение:   " & Round($Altitude, 0))
-					GUICtrlSetData($Label_azimut, "Азимут:            " & Round(Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty), 2))
+					GUICtrlSetData($Label_azimut, "Азимут:            " & Round($Azimuth, 2))
 
-					GUICtrlSetData($Label_solution_0, "Навесная:        " & Round($Solution_0, 2))
+					GUICtrlSetData($Label_solution_0, "Навесная:        " & Round($Solution_fix_0, 2))
 					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution_0), 0))
 
-					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_1, 2))
+					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_fix_1, 2))
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution_1), 0))
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат цели")
@@ -226,7 +241,7 @@ Func Solution_1($Range, $Altitude, $Velocity)
 	Return $Solution
 EndFunc   ;==>Solution_1
 
-Func Solution_fix($Azimuth_to, $Solution_in, $Azimuth_fix, $Angle)
-   Local $Solution = _Degree(Cos($Azimuth_to - $Azimuth_fix)) * $Angle
-   Return $Solution
-EndFunc
+Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle)
+	Local $Solution = $Solution_to - Cos(_Radian($Azimuth_to - $Azimuth_fix)) * $Angle
+	Return $Solution
+EndFunc   ;==>Solution_fix
