@@ -8,7 +8,8 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.0
+#AutoIt3Wrapper_Res_Fileversion=1.1.2.4
+#AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -41,6 +42,7 @@ Func Gui1()
 	$hGUI1 = GUICreate("Баллистический калькулятор", 500, 400)
 	$hButton1 = GUICtrlCreateButton("Рассчитать", 20, 360, 80, 30)
 	$hButton2 = GUICtrlCreateButton("Позиция...", 20, 10, 80, 30)
+	$hButton10 = GUICtrlCreateButton("?", 65, 65, 15, 20)
 
 	$Slider1 = GUICtrlCreateSlider(178, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
 	GUICtrlSetLimit($Slider1, 100, 0)
@@ -123,6 +125,8 @@ Func Gui1()
 			Case $hButton2
 				GUISetState(@SW_DISABLE, $hGUI1)
 				Gui2()
+			Case $hButton10
+				MsgBox("", "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
 			Case $Slider1
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $Slider2
