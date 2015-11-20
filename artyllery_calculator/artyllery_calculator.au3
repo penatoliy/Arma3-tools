@@ -33,7 +33,7 @@
 #include <EditConstants.au3>
 #include <Math.au3>
 
-Global $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
+Global $hGUI1, $hGUI2, $hGUI3, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
 
 Gui1()
 
@@ -123,8 +123,6 @@ Func Gui1()
 			Case $hButton2
 				GUISetState(@SW_DISABLE, $hGUI1)
 				Gui2()
-				GUISetState(@SW_ENABLE, $hGUI1)
-				WinActivate($hGUI1)
 			Case $Slider1
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $Slider2
@@ -166,6 +164,9 @@ Func Gui2()
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
+				GUISetState(@SW_DISABLE, $hGUI2)
+				GUISetState(@SW_ENABLE, $hGUI1)
+				WinActivate($hGUI1)
 				GUIDelete($hGUI2)
 				ExitLoop
 			Case $hButton3
@@ -177,6 +178,9 @@ Func Gui2()
 					$Input_aalt = GUICtrlRead($Input4)
 					$Input_ax = ($Square_ax * 100) + ($Square_pax)
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
+					GUISetState(@SW_DISABLE, $hGUI2)
+					GUISetState(@SW_ENABLE, $hGUI1)
+					WinActivate($hGUI1)
 					GUIDelete($hGUI2)
 					ExitLoop
 				Else
@@ -193,8 +197,6 @@ Func Gui2()
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
 					GUISetState(@SW_DISABLE, $hGUI2)
 					Gui3()
-					GUISetState(@SW_ENABLE, $hGUI2)
-					WinActivate($hGUI2)
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
 				EndIf
@@ -252,6 +254,9 @@ Func Gui3()
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
+				GUISetState(@SW_DISABLE, $hGUI3)
+				GUISetState(@SW_ENABLE, $hGUI2)
+				WinActivate($hGUI2)
 				GUIDelete($hGUI3)
 				ExitLoop
 			Case $hButton5
