@@ -276,7 +276,7 @@ Func Gui3()
 					GUICtrlSetData($Input9, $Fix_angle[0])
 					GUICtrlSetData($Input10, StringLeft($Fix_angle[1], 2))
 				Else
-					MsgBox("", "Ошибка", "Углы ореентиров не установлены")
+					MsgBox("", "Ошибка", "Углы ориентиров не установлены")
 				EndIf
 			Case $hButton6
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
@@ -294,7 +294,7 @@ Func Gui3()
 					$DAngle_o_0 = $Angle_o_0 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
 					GUICtrlSetData($Label_fix_0, Round($Azimuth_o_0, 0) & "@" & Round($DAngle_o_0, 2))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат ореентира")
+					MsgBox("", "Ошибка", "Неверно введён квадрат ориентира")
 				EndIf
 			Case $hButton7
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
@@ -312,7 +312,7 @@ Func Gui3()
 					$DAngle_o_1 = $Angle_o_1 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
 					GUICtrlSetData($Label_fix_1, Round($Azimuth_o_1, 0) & "@" & Round($DAngle_o_1, 2))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат ореентира")
+					MsgBox("", "Ошибка", "Неверно введён квадрат ориентира")
 				EndIf
 			Case $hButton9
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
@@ -330,7 +330,7 @@ Func Gui3()
 					$DAngle_o_2 = $Angle_o_2 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
 					GUICtrlSetData($Label_fix_2, Round($Azimuth_o_2, 0) & "@" & Round($DAngle_o_2, 2))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат ореентира")
+					MsgBox("", "Ошибка", "Неверно введён квадрат ориентира")
 				EndIf
 			Case $hButton8
 				GUICtrlSetData($Input13, "-" & GUICtrlRead($Input13))
