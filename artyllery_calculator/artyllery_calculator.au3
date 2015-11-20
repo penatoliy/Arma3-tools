@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
 #AutoIt3Wrapper_Res_Fileversion=1.1.2.0
-#AutoIt3Wrapper_Res_LegalCopyright=Перескоков А.Н.
+#AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
 #AutoIt3Wrapper_Run_Tidy=y
