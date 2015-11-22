@@ -8,7 +8,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.5
+#AutoIt3Wrapper_Res_Fileversion=1.1.2.7
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
@@ -106,19 +106,18 @@ Func Gui1()
 					$Altitude = GUICtrlRead($Input2) - $Input_aalt
 					$Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 					$Azimuth = Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-					$Solution_0 = Solution_0($Range, $Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
-					$Solution_1 = Solution_1($Range, $Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
-					$Solution_fix_0 = Solution_fix($Azimuth, $Solution_0, GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
-					$Solution_fix_1 = Solution_fix($Azimuth, $Solution_1, GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
+					$Solution = Solution($Range, $Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
+					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
+					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
 					GUICtrlSetData($Label_altitude, "Возвышение:   " & Round(_Degree(ATan($Altitude / $Range)), 1))
 					GUICtrlSetData($Label_azimut, "Азимут:            " & Round($Azimuth, 2))
 
 					GUICtrlSetData($Label_solution_0, "Навесная:        " & Round($Solution_fix_0, 2))
-					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution_0), 0))
+					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[0]), 0))
 
 					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_fix_1, 2))
-					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution_1), 0))
+					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[1]), 0))
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат цели или позиции")
 				EndIf
@@ -265,8 +264,7 @@ Func Gui3()
 				ExitLoop
 			Case $hButton5
 				If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
-					$Fix_string = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
-					$Fix_array = StringSplit($Fix_string, "@", $STR_NOCOUNT)
+					$Fix_array = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
 					GUICtrlSetData($Label_fix, Round($Fix_array[0], 0) & "@" & Round($Fix_array[1], 2))
 					If StringInStr($Fix_array[0], ".") Then
 						$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
@@ -352,19 +350,18 @@ Func Gui3()
 EndFunc   ;==>Gui3
 
 Func Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-	Local $Range = Sqrt(($Input_ax - $Input_tx) ^ 2 + ($Input_ay - $Input_ty) ^ 2)
+	$Range = Sqrt(($Input_ax - $Input_tx) ^ 2 + ($Input_ay - $Input_ty) ^ 2)
 	Return $Range
 EndFunc   ;==>Range_finder
 
 Func Time_to($Range, $Velocity, $Solution)
-	Local $ETA = ($Range / ($Velocity * Cos(_Radian($Solution))))
+	$ETA = ($Range / ($Velocity * Cos(_Radian($Solution))))
 	Return $ETA
 EndFunc   ;==>Time_to
 
 Func Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-	Local $Input_dx = $Input_tx - $Input_ax
-	Local $Input_dy = $Input_ty - $Input_ay
-	Local $Azimuth_to
+	$Input_dx = $Input_tx - $Input_ax
+	$Input_dy = $Input_ty - $Input_ay
 	If $Input_dx > 0 Then
 		$Azimuth_to = 90 - _Degree(ATan($Input_dy / $Input_dx))
 	Else
@@ -381,17 +378,14 @@ Func Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 	Return $Azimuth_to
 EndFunc   ;==>Azimuth_to
 
-Func Solution_0($Range, $Altitude, $Velocity)
-	Local Const $g = 9.80665
-	Local $Solution = _Degree(ATan(($Velocity ^ 2 + Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
+Func Solution($Range, $Altitude, $Velocity)
+	Local $Solution[2]
+	Const $g = 9.80665
+	$Solution[0] = _Degree(ATan(($Velocity ^ 2 + Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
+	$Solution[1] = _Degree(ATan(($Velocity ^ 2 - Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
 	Return $Solution
-EndFunc   ;==>Solution_0
+EndFunc   ;==>Solution
 
-Func Solution_1($Range, $Altitude, $Velocity)
-	Local Const $g = 9.80665
-	Local $Solution = _Degree(ATan(($Velocity ^ 2 - Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
-	Return $Solution
-EndFunc   ;==>Solution_1
 
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 	If $Azimuth_to > 180 Then $Azimuth_to = $Azimuth_to - 360
@@ -401,28 +395,30 @@ Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 EndFunc   ;==>Solution_fix
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
-	Local $Dot_x_0 = ($Dot_rg_0 + 100) * Cos(_Radian($Dot_az_0))
-	Local $Dot_y_0 = ($Dot_rg_0 + 100) * Sin(_Radian($Dot_az_0))
-	Local $Dot_x_1 = ($Dot_rg_1 + 100) * Cos(_Radian($Dot_az_1))
-	Local $Dot_y_1 = ($Dot_rg_1 + 100) * Sin(_Radian($Dot_az_1))
-	Local $Dot_x_2 = ($Dot_rg_2 + 100) * Cos(_Radian($Dot_az_2))
-	Local $Dot_y_2 = ($Dot_rg_2 + 100) * Sin(_Radian($Dot_az_2))
-	Local $A = $Dot_x_1 - $Dot_x_0
-	Local $B = $Dot_y_1 - $Dot_y_0
-	Local $C = $Dot_x_2 - $Dot_x_0
-	Local $D = $Dot_y_2 - $Dot_y_0
-	Local $E = $A * ($Dot_x_0 + $Dot_x_1) + $B * ($Dot_y_0 + $Dot_y_1)
-	Local $F = $C * ($Dot_x_0 + $Dot_x_2) + $D * ($Dot_y_0 + $Dot_y_2)
-	Local $g = 2 * ($A * ($Dot_y_2 - $Dot_y_1) - $B * ($Dot_x_2 - $Dot_x_1))
-	Local $Cx = ($D * $E - $B * $F) / $g
-	Local $Cy = ($A * $F - $C * $E) / $g
-	Local $Corr_rg = Sqrt($Cx ^ 2 + $Cy ^ 2)
-	Local $Corr_az_f = _Degree(ACos($Cx / ($Corr_rg)))
-	If $Corr_az_f < 180 Then
-		Local $Corr_az = $Corr_az_f + 180
+	Local $Solution[2]
+	$Dot_x_0 = ($Dot_rg_0 + 100) * Cos(_Radian($Dot_az_0))
+	$Dot_y_0 = ($Dot_rg_0 + 100) * Sin(_Radian($Dot_az_0))
+	$Dot_x_1 = ($Dot_rg_1 + 100) * Cos(_Radian($Dot_az_1))
+	$Dot_y_1 = ($Dot_rg_1 + 100) * Sin(_Radian($Dot_az_1))
+	$Dot_x_2 = ($Dot_rg_2 + 100) * Cos(_Radian($Dot_az_2))
+	$Dot_y_2 = ($Dot_rg_2 + 100) * Sin(_Radian($Dot_az_2))
+	$A = $Dot_x_1 - $Dot_x_0
+	$B = $Dot_y_1 - $Dot_y_0
+	$C = $Dot_x_2 - $Dot_x_0
+	$D = $Dot_y_2 - $Dot_y_0
+	$E = $A * ($Dot_x_0 + $Dot_x_1) + $B * ($Dot_y_0 + $Dot_y_1)
+	$F = $C * ($Dot_x_0 + $Dot_x_2) + $D * ($Dot_y_0 + $Dot_y_2)
+	$g = 2 * ($A * ($Dot_y_2 - $Dot_y_1) - $B * ($Dot_x_2 - $Dot_x_1))
+	$Cx = ($D * $E - $B * $F) / $g
+	$Cy = ($A * $F - $C * $E) / $g
+	$Corr_rg = Sqrt($Cx ^ 2 + $Cy ^ 2)
+	$Corr_az = _Degree(ACos($Cx / ($Corr_rg)))
+	If $Corr_az > 180 Then
+		$Corr_az = $Corr_az - 180
 	Else
-		Local $Corr_az = $Corr_az_f - 180
+		$Corr_az = $Corr_az + 180
 	EndIf
-	Local $Solution = ($Corr_az & "@" & $Corr_rg)
+	$Solution[0] = $Corr_az
+	$Solution[1] = $Corr_rg
 	Return $Solution
 EndFunc   ;==>Geo_fix
