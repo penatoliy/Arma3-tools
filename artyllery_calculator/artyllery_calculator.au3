@@ -8,7 +8,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.7
+#AutoIt3Wrapper_Res_Fileversion=1.1.2.8
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
@@ -413,11 +413,6 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$Cy = ($A * $F - $C * $E) / $g
 	$Corr_rg = Sqrt($Cx ^ 2 + $Cy ^ 2)
 	$Corr_az = _Degree(ACos($Cx / ($Corr_rg)))
-	If $Corr_az > 180 Then
-		$Corr_az = $Corr_az - 180
-	Else
-		$Corr_az = $Corr_az + 180
-	EndIf
 	$Solution[0] = $Corr_az
 	$Solution[1] = $Corr_rg
 	Return $Solution
