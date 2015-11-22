@@ -17,13 +17,13 @@
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs ----------------------------------------------------------------------------
-	
+
 	AutoIt Version: 3.3.14.2
 	Author:         Penatoliy
-	
+
 	Script Function:
 	Arma 3 artyllery calculator
-	
+
 #ce ----------------------------------------------------------------------------
 
 #include <GUIConstantsEx.au3>
@@ -291,7 +291,6 @@ Func Gui3()
 					$Square_oy_0 = StringRight(GUICtrlRead($Input11), 3)
 					$Square_pox_0 = GUICtrlRead($Slider5)
 					$Square_poy_0 = GUICtrlRead($Slider6)
-					$Input_oalt_0 = GUICtrlRead($Input12)
 					$Input_ox_0 = ($Square_ox_0 * 100) + ($Square_pox_0)
 					$Input_oy_0 = ($Square_oy_0 * 100) + ($Square_poy_0 * -1)
 					$Range_o_0 = Range_finder($Input_ax, $Input_ay, $Input_ox_0, $Input_oy_0)
@@ -309,7 +308,6 @@ Func Gui3()
 					$Square_oy_1 = StringRight(GUICtrlRead($Input11), 3)
 					$Square_pox_1 = GUICtrlRead($Slider5)
 					$Square_poy_1 = GUICtrlRead($Slider6)
-					$Input_oalt_1 = GUICtrlRead($Input12)
 					$Input_ox_1 = ($Square_ox_1 * 100) + ($Square_pox_1)
 					$Input_oy_1 = ($Square_oy_1 * 100) + ($Square_poy_1 * -1)
 					$Range_o_1 = Range_finder($Input_ax, $Input_ay, $Input_ox_1, $Input_oy_1)
@@ -327,7 +325,6 @@ Func Gui3()
 					$Square_oy_2 = StringRight(GUICtrlRead($Input11), 3)
 					$Square_pox_2 = GUICtrlRead($Slider5)
 					$Square_poy_2 = GUICtrlRead($Slider6)
-					$Input_oalt_2 = GUICtrlRead($Input12)
 					$Input_ox_2 = ($Square_ox_2 * 100) + ($Square_pox_2)
 					$Input_oy_2 = ($Square_oy_2 * 100) + ($Square_poy_2 * -1)
 					$Range_o_2 = Range_finder($Input_ax, $Input_ay, $Input_ox_2, $Input_oy_2)
@@ -390,7 +387,7 @@ EndFunc   ;==>Solution
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 	If $Azimuth_to > 180 Then $Azimuth_to = $Azimuth_to - 360
 	If $Azimuth_fix > 180 Then $Azimuth_fix = $Azimuth_fix - 360
-	$Solution = $Solution_to - ((-Abs($Azimuth_to - $Azimuth_fix)) / 90 + 1) * $Angle_fix
+	$Solution = $Solution_to + ((-Abs($Azimuth_to - $Azimuth_fix)) / 90 + 1) * $Angle_fix
 	Return $Solution
 EndFunc   ;==>Solution_fix
 
