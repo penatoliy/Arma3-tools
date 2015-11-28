@@ -17,13 +17,13 @@
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs ----------------------------------------------------------------------------
-
+	
 	AutoIt Version: 3.3.14.2
 	Author:         Penatoliy
-
+	
 	Script Function:
 	Arma 3 artyllery calculator
-
+	
 #ce ----------------------------------------------------------------------------
 
 #include <GUIConstantsEx.au3>
@@ -262,7 +262,7 @@ Func Gui3()
 				WinActivate($hGUI2)
 				GUIDelete($hGUI3)
 				ExitLoop
-			 Case $hButton5
+			Case $hButton5
 				Local $Fix_azimuth[2]
 				Local $Fix_angle[2]
 				If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
@@ -359,7 +359,7 @@ Func Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 EndFunc   ;==>Range_finder
 
 Func Time_to($Range, $Velocity, $Solution)
-    Local $ETA
+	Local $ETA
 	$ETA = ($Range / ($Velocity * Cos(_Radian($Solution))))
 	Return $ETA
 EndFunc   ;==>Time_to
@@ -394,7 +394,7 @@ EndFunc   ;==>Solution
 
 
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
-    Local $Solution
+	Local $Solution
 	If $Azimuth_to > 180 Then $Azimuth_to = $Azimuth_to - 360
 	If $Azimuth_fix > 180 Then $Azimuth_fix = $Azimuth_fix - 360
 	$Solution = $Solution_to + ((-Abs($Azimuth_to - $Azimuth_fix)) / 90 + 1) * $Angle_fix
