@@ -8,7 +8,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.9
+#AutoIt3Wrapper_Res_Fileversion=1.1.2.10
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
@@ -262,18 +262,24 @@ Func Gui3()
 				WinActivate($hGUI2)
 				GUIDelete($hGUI3)
 				ExitLoop
-			Case $hButton5
+			 Case $hButton5
+				Local $Fix_azimuth[2]
+				Local $Fix_angle[2]
 				If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
 					$Fix_array = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
 					GUICtrlSetData($Label_fix, Round($Fix_array[0], 0) & "@" & Round($Fix_array[1], 2))
-					If StringInStr($Fix_array[0], ".") Then
+					$Fix_array[0] = Round($Fix_array[0], 2)
+					$Fix_array[1] = Round($Fix_array[1], 2)
+					If StringIsFloat($Fix_array[0]) Then
 						$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
+						If StringLen($Fix_azimuth[1]) = 1 Then $Fix_azimuth[1] = $Fix_azimuth[1] & 0
 					Else
 						$Fix_azimuth[0] = $Fix_array[0]
 						$Fix_azimuth[1] = "00"
 					EndIf
-					If StringInStr($Fix_array[1], ".") Then
+					If StringIsFloat($Fix_array[1]) Then
 						$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
+						If StringLen($Fix_angle[1]) = 1 Then $Fix_angle[1] = $Fix_angle[1] & 0
 					Else
 						$Fix_angle[0] = $Fix_array[1]
 						$Fix_angle[1] = "00"
@@ -347,16 +353,19 @@ Func Gui3()
 EndFunc   ;==>Gui3
 
 Func Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+	Local $Range
 	$Range = Sqrt(($Input_ax - $Input_tx) ^ 2 + ($Input_ay - $Input_ty) ^ 2)
 	Return $Range
 EndFunc   ;==>Range_finder
 
 Func Time_to($Range, $Velocity, $Solution)
+    Local $ETA
 	$ETA = ($Range / ($Velocity * Cos(_Radian($Solution))))
 	Return $ETA
 EndFunc   ;==>Time_to
 
 Func Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+	Local $Azimuth_to
 	$Input_dx = $Input_tx - $Input_ax
 	$Input_dy = $Input_ty - $Input_ay
 	If $Input_dx > 0 Then
@@ -385,6 +394,7 @@ EndFunc   ;==>Solution
 
 
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
+    Local $Solution
 	If $Azimuth_to > 180 Then $Azimuth_to = $Azimuth_to - 360
 	If $Azimuth_fix > 180 Then $Azimuth_fix = $Azimuth_fix - 360
 	$Solution = $Solution_to + ((-Abs($Azimuth_to - $Azimuth_fix)) / 90 + 1) * $Angle_fix
