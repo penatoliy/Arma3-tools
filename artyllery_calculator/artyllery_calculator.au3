@@ -17,13 +17,13 @@
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs ----------------------------------------------------------------------------
-	
+
 	AutoIt Version: 3.3.14.2
 	Author:         Penatoliy
-	
+
 	Script Function:
 	Arma 3 artyllery calculator
-	
+
 #ce ----------------------------------------------------------------------------
 
 #include <GUIConstantsEx.au3>
@@ -34,12 +34,12 @@
 #include <EditConstants.au3>
 #include <Math.au3>
 
-Global $hGUI1, $hGUI2, $hGUI3, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
+Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
 
-Gui1()
+GUI_main()
 
-Func Gui1()
-	$hGUI1 = GUICreate("Баллистический калькулятор", 500, 400)
+Func GUI_main()
+	$hGUI_main = GUICreate("Баллистический калькулятор", 500, 400)
 	$hButton1 = GUICtrlCreateButton("Рассчитать", 20, 360, 80, 30)
 	$hButton2 = GUICtrlCreateButton("Позиция...", 20, 10, 80, 30)
 	$hButton10 = GUICtrlCreateButton("?", 65, 65, 15, 20)
@@ -122,8 +122,8 @@ Func Gui1()
 					MsgBox("", "Ошибка", "Неверно введён квадрат цели или позиции")
 				EndIf
 			Case $hButton2
-				GUISetState(@SW_DISABLE, $hGUI1)
-				Gui2()
+				GUISetState(@SW_DISABLE, $hGUI_main)
+				GUI_pos()
 			Case $hButton10
 				MsgBox("", "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
 			Case $Slider1
@@ -132,10 +132,10 @@ Func Gui1()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 		EndSwitch
 	WEnd
-EndFunc   ;==>Gui1
+EndFunc   ;==>GUI_main
 
-Func Gui2()
-	$hGUI2 = GUICreate("Установка позиции батареи", 400, 440)
+Func GUI_pos()
+	$hGUI_position = GUICreate("Установка позиции батареи", 400, 440)
 	$hButton3 = GUICtrlCreateButton("Установить", 10, 400, 80, 30)
 	$hButton4 = GUICtrlCreateButton("Угловая привязка...", 200, 400, 120, 30)
 
@@ -167,10 +167,10 @@ Func Gui2()
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
-				GUISetState(@SW_DISABLE, $hGUI2)
-				GUISetState(@SW_ENABLE, $hGUI1)
-				WinActivate($hGUI1)
-				GUIDelete($hGUI2)
+				GUISetState(@SW_DISABLE, $hGUI_position)
+				GUISetState(@SW_ENABLE, $hGUI_main)
+				WinActivate($hGUI_main)
+				GUIDelete($hGUI_position)
 				ExitLoop
 			Case $hButton3
 				If StringLen(GUICtrlRead($Input3)) = 6 Then
@@ -181,10 +181,10 @@ Func Gui2()
 					$Input_aalt = GUICtrlRead($Input4)
 					$Input_ax = ($Square_ax * 100) + ($Square_pax)
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
-					GUISetState(@SW_DISABLE, $hGUI2)
-					GUISetState(@SW_ENABLE, $hGUI1)
-					WinActivate($hGUI1)
-					GUIDelete($hGUI2)
+					GUISetState(@SW_DISABLE, $hGUI_position)
+					GUISetState(@SW_ENABLE, $hGUI_main)
+					WinActivate($hGUI_main)
+					GUIDelete($hGUI_position)
 					ExitLoop
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
@@ -198,8 +198,8 @@ Func Gui2()
 					$Input_aalt = GUICtrlRead($Input4)
 					$Input_ax = ($Square_ax * 100) + ($Square_pax)
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
-					GUISetState(@SW_DISABLE, $hGUI2)
-					Gui3()
+					GUISetState(@SW_DISABLE, $hGUI_position)
+					GUI_angle()
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
 				EndIf
@@ -209,11 +209,11 @@ Func Gui2()
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 		EndSwitch
 	WEnd
-EndFunc   ;==>Gui2
+EndFunc   ;==>GUI_position
 
-Func Gui3()
+Func GUI_angle()
 	Local $Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2, $Range_o_0, $Range_o_1, $Range_o_2
-	$hGUI3 = GUICreate("Коррекция по трём углам", 400, 440)
+	$hGUI_angle = GUICreate("Коррекция по трём углам", 400, 440)
 
 	$hButton5 = GUICtrlCreateButton("Рассчитать", 10, 400, 80, 30)
 	$Label_fix = GUICtrlCreateLabel("", 10, 381, 80, 20, $SS_LEFT)
@@ -257,10 +257,10 @@ Func Gui3()
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
-				GUISetState(@SW_DISABLE, $hGUI3)
-				GUISetState(@SW_ENABLE, $hGUI2)
-				WinActivate($hGUI2)
-				GUIDelete($hGUI3)
+				GUISetState(@SW_DISABLE, $hGUI_angle)
+				GUISetState(@SW_ENABLE, $hGUI_position)
+				WinActivate($hGUI_position)
+				GUIDelete($hGUI_angle)
 				ExitLoop
 			Case $hButton5
 				Local $Fix_azimuth[2]
@@ -350,7 +350,7 @@ Func Gui3()
 				GUICtrlSetPos($Graphic9, 86 + GUICtrlRead($Slider5) * 2.98, 334 - GUICtrlRead($Slider6) * -2.98)
 		EndSwitch
 	WEnd
-EndFunc   ;==>Gui3
+EndFunc   ;==>GUI_angle
 
 Func Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 	Local $Range
