@@ -395,9 +395,14 @@ EndFunc   ;==>Solution
 
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 	Local $Solution
-	If $Azimuth_to > 180 Then $Azimuth_to = $Azimuth_to - 360
-	If $Azimuth_fix > 180 Then $Azimuth_fix = $Azimuth_fix - 360
-	$Solution = $Solution_to + ((-Abs($Azimuth_to - $Azimuth_fix)) / 90 + 1) * $Angle_fix
+	$Azimuth = $Azimuth_to - $Azimuth_fix
+	Select
+	  Case $Azimuth > 180
+	   $Azimuth = $Azimuth - 360
+	  Case $Azimuth < -180
+	   $Azimuth = $Azimuth + 360
+    EndSelect
+	$Solution = $Solution_to + ((-Abs($Azimuth)) / 90 + 1) * $Angle_fix
 	Return $Solution
 EndFunc   ;==>Solution_fix
 
