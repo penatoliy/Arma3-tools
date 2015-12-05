@@ -8,7 +8,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.10
+#AutoIt3Wrapper_Res_Fileversion=1.1.2.11
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
@@ -17,13 +17,13 @@
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 #cs ----------------------------------------------------------------------------
-
+	
 	AutoIt Version: 3.3.14.2
 	Author:         Penatoliy
-
+	
 	Script Function:
 	Arma 3 artyllery calculator
-
+	
 #ce ----------------------------------------------------------------------------
 
 #include <GUIConstantsEx.au3>
@@ -123,7 +123,7 @@ Func GUI_main()
 				EndIf
 			Case $hButton2
 				GUISetState(@SW_DISABLE, $hGUI_main)
-				GUI_pos()
+				GUI_position()
 			Case $hButton10
 				MsgBox("", "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
 			Case $Slider1
@@ -134,7 +134,7 @@ Func GUI_main()
 	WEnd
 EndFunc   ;==>GUI_main
 
-Func GUI_pos()
+Func GUI_position()
 	$hGUI_position = GUICreate("Установка позиции батареи", 400, 440)
 	$hButton3 = GUICtrlCreateButton("Установить", 10, 400, 80, 30)
 	$hButton4 = GUICtrlCreateButton("Угловая привязка...", 200, 400, 120, 30)
@@ -397,12 +397,12 @@ Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 	Local $Solution
 	$Azimuth = $Azimuth_to - $Azimuth_fix
 	Select
-	  Case $Azimuth > 180
-	   $Azimuth = $Azimuth - 360
-	  Case $Azimuth < -180
-	   $Azimuth = $Azimuth + 360
-    EndSelect
-	$Solution = $Solution_to + ((-Abs($Azimuth)) / 90 + 1) * $Angle_fix
+		Case $Azimuth > 180
+			$Azimuth = $Azimuth - 360
+		Case $Azimuth < -180
+			$Azimuth = $Azimuth + 360
+	EndSelect
+	$Solution = $Solution_to + (-Abs($Azimuth) / 90 + 1) * $Angle_fix
 	Return $Solution
 EndFunc   ;==>Solution_fix
 
