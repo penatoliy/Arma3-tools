@@ -394,7 +394,7 @@ EndFunc   ;==>Solution
 
 
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
-	Local $Solution
+	Local $Solution, $Azimuth
 	$Azimuth = $Azimuth_to - $Azimuth_fix
 	Select
 		Case $Azimuth > 180
