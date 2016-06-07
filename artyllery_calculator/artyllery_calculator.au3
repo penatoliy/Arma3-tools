@@ -33,6 +33,7 @@
 #include <StringConstants.au3>
 #include <EditConstants.au3>
 #include <Math.au3>
+#include "_Fann.au3"
 #NoTrayIcon
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
@@ -42,8 +43,9 @@ GUI_main()
 Func GUI_main()
 	$hGUI_main = GUICreate("Баллистический калькулятор", 500, 400)
 	$hButton1 = GUICtrlCreateButton("Рассчитать", 20, 360, 80, 30)
-	$hButton2 = GUICtrlCreateButton("Позиция...", 20, 10, 80, 30)
+	$hButton2 = GUICtrlCreateButton("Позиция", 10, 10, 50, 30)
 	$hButton10 = GUICtrlCreateButton("?", 65, 65, 15, 20)
+	$hButton11 = GUICtrlCreateButton("Попадание", 70, 10, 70, 30)
 
 	$Slider1 = GUICtrlCreateSlider(178, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
 	GUICtrlSetLimit($Slider1, 100, 0)
