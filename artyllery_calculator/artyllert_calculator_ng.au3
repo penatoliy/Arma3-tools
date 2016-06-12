@@ -1,4 +1,4 @@
-﻿#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=doc_math_128px_1086911_easyicon.net.ico
 #AutoIt3Wrapper_Outfile=artyllery_calculator_32.exe
 #AutoIt3Wrapper_Outfile_x64=artyllery_calculator_64.exe
@@ -33,18 +33,17 @@
 #include <StringConstants.au3>
 #include <EditConstants.au3>
 #include <Math.au3>
-;~ #include "_Fann.au3"
+#include "_Fann.au3"
 #NoTrayIcon
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[32][3], $HitCounter = 0
 
 GUI_main()
 
 Func GUI_main()
 	$hGUI_main = GUICreate("Баллистический калькулятор", 500, 400)
 	$hButton1 = GUICtrlCreateButton("Рассчитать", 20, 360, 80, 30)
-	$hButton2 = GUICtrlCreateButton("Позиция", 10, 10, 60, 30)
+	$hButton2 = GUICtrlCreateButton("Позиция", 10, 10, 50, 30)
 	$hButton10 = GUICtrlCreateButton("?", 65, 65, 15, 20)
 	$hButton11 = GUICtrlCreateButton("Попадание", 70, 10, 70, 30)
 
@@ -134,8 +133,6 @@ Func GUI_main()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $Slider2
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
-			Case $hButton11
-;~ 				Наполнение массива для поиска коррекции
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_main
@@ -143,9 +140,7 @@ EndFunc   ;==>GUI_main
 Func GUI_position()
 	$hGUI_position = GUICreate("Установка позиции батареи", 400, 440)
 	$hButton3 = GUICtrlCreateButton("Установить", 10, 400, 80, 30)
-	$hButton4 = GUICtrlCreateButton("Угловая привязка", 100, 400, 100, 30)
-	$hButton12 = GUICtrlCreateButton("Сбросить массив", 205, 400, 100, 30)
-	$hButton13 = GUICtrlCreateButton("Коррекция", 310, 400, 80, 30)
+	$hButton4 = GUICtrlCreateButton("Угловая привязка...", 200, 400, 120, 30)
 
 	$Slider3 = GUICtrlCreateSlider(78, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
 	GUICtrlSetLimit($Slider3, 100, 0)
@@ -215,12 +210,6 @@ Func GUI_position()
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $Slider4
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
-			Case $hButton12
-				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Сбросить массив коррекции?")
-				If $mbresult = 6 Then $HitCounter = 0
-			Case $hButton13
-				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Рассчитать и внести коррекцию?")
-				If $mbresult = 6 Then Find_error($HitCounter)
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_position
@@ -443,9 +432,3 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$Solution[1] = $Corr_rg
 	Return $Solution
 EndFunc   ;==>Geo_fix
-
-Func Find_error($Count)
-	For $i = 0 To $Count
-;~ 		Тут должна быть функция среднеквадратичного расчёта коррекции
-	Next
-EndFunc   ;==>Find_error
