@@ -99,6 +99,8 @@ Func GUI_main()
 
 	GUISetState()
 
+	$HitLock = True
+
 	While 1
 		Switch GUIGetMsg()
 			Case $GUI_EVENT_CLOSE
@@ -122,6 +124,11 @@ Func GUI_main()
 
 					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_fix_1, 2))
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[1]), 0))
+
+					$HitArray[$HitCounter][0] = $Azimuth
+					$HitArray[$HitCounter][1] = $Solution[0]
+
+					$HitLock = False
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат цели или позиции")
 				EndIf
@@ -135,7 +142,16 @@ Func GUI_main()
 			Case $Slider2
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $hButton11
-;~ 				Наполнение массива для поиска коррекции
+				If $HitLock = False Then
+					$1Altitude = GUICtrlRead($Input2) - $Input_aalt
+					$1Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+					$1Solution = Solution($1Range, $1Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
+					$HitArray[$HitCounter][2] = $1Solution[0]
+					$HitCounter += 1
+					$HitLock = True
+				Else
+					MsgBox("", "Ошибка", "Не произведён рассчёт выстрела")
+				EndIf
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_main
@@ -220,7 +236,11 @@ Func GUI_position()
 				If $mbresult = 6 Then $HitCounter = 0
 			Case $hButton13
 				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Рассчитать и внести коррекцию?")
-				If $mbresult = 6 Then Find_error($HitCounter)
+				If $mbresult = 6 Then
+					For $i = 0 To $HitCounter
+						MsgBox("", "test", $HitArray[$i][0] & @CRLF & $HitArray[$i][1] & @CRLF & $HitArray[$i][2])
+					Next
+				EndIf
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_position
@@ -277,33 +297,36 @@ Func GUI_angle()
 				GUIDelete($hGUI_angle)
 				ExitLoop
 			Case $hButton5
-				Local $Fix_azimuth[2]
-				Local $Fix_angle[2]
-				If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
-					$Fix_array = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
-					GUICtrlSetData($Label_fix, Round($Fix_array[0], 0) & "@" & Round($Fix_array[1], 2))
-					$Fix_array[0] = Round($Fix_array[0], 2)
-					$Fix_array[1] = Round($Fix_array[1], 2)
-					If StringIsFloat($Fix_array[0]) Then
-						$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
-						If StringLen($Fix_azimuth[1]) = 1 Then $Fix_azimuth[1] = $Fix_azimuth[1] & 0
+				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Рассчитать и внести коррекцию?")
+				If $mbresult = 6 Then
+					Local $Fix_azimuth[2]
+					Local $Fix_angle[2]
+					If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
+						$Fix_array = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
+						GUICtrlSetData($Label_fix, Round($Fix_array[0], 0) & "@" & Round($Fix_array[1], 2))
+						$Fix_array[0] = Round($Fix_array[0], 2)
+						$Fix_array[1] = Round($Fix_array[1], 2)
+						If StringIsFloat($Fix_array[0]) Then
+							$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
+							If StringLen($Fix_azimuth[1]) = 1 Then $Fix_azimuth[1] = $Fix_azimuth[1] & 0
+						Else
+							$Fix_azimuth[0] = $Fix_array[0]
+							$Fix_azimuth[1] = "00"
+						EndIf
+						If StringIsFloat($Fix_array[1]) Then
+							$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
+							If StringLen($Fix_angle[1]) = 1 Then $Fix_angle[1] = $Fix_angle[1] & 0
+						Else
+							$Fix_angle[0] = $Fix_array[1]
+							$Fix_angle[1] = "00"
+						EndIf
+						GUICtrlSetData($Input7, $Fix_azimuth[0])
+						GUICtrlSetData($Input8, StringLeft($Fix_azimuth[1], 2))
+						GUICtrlSetData($Input9, $Fix_angle[0])
+						GUICtrlSetData($Input10, StringLeft($Fix_angle[1], 2))
 					Else
-						$Fix_azimuth[0] = $Fix_array[0]
-						$Fix_azimuth[1] = "00"
+						MsgBox("", "Ошибка", "Углы ориентиров не установлены")
 					EndIf
-					If StringIsFloat($Fix_array[1]) Then
-						$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
-						If StringLen($Fix_angle[1]) = 1 Then $Fix_angle[1] = $Fix_angle[1] & 0
-					Else
-						$Fix_angle[0] = $Fix_array[1]
-						$Fix_angle[1] = "00"
-					EndIf
-					GUICtrlSetData($Input7, $Fix_azimuth[0])
-					GUICtrlSetData($Input8, StringLeft($Fix_azimuth[1], 2))
-					GUICtrlSetData($Input9, $Fix_angle[0])
-					GUICtrlSetData($Input10, StringLeft($Fix_angle[1], 2))
-				Else
-					MsgBox("", "Ошибка", "Углы ориентиров не установлены")
 				EndIf
 			Case $hButton6
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
@@ -449,3 +472,4 @@ Func Find_error($Count)
 ;~ 		Тут должна быть функция среднеквадратичного расчёта коррекции
 	Next
 EndFunc   ;==>Find_error
+
