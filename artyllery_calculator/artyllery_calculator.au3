@@ -33,11 +33,10 @@
 #include <StringConstants.au3>
 #include <EditConstants.au3>
 #include <Math.au3>
-;~ #include "_Fann.au3"
 #NoTrayIcon
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[64][3], $HitCounter = 0
+Global $HitArray[64][5], $HitCounter = 0
 
 GUI_main()
 
@@ -146,7 +145,9 @@ Func GUI_main()
 					$tSolution = Solution($tRange, $tAltitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
 					$HitArray[$HitCounter][0] = $Azimuth
 					$HitArray[$HitCounter][1] = $Solution[0]
-					$HitArray[$HitCounter][2] = $Solution[0] - $tSolution[0]
+					$HitArray[$HitCounter][2] = $tSolution[0]
+					$HitArray[$HitCounter][3] = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
+					$HitArray[$HitCounter][4] = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 					$HitCounter += 1
 					$HitLock = True
 				Else
@@ -238,9 +239,10 @@ Func GUI_position()
 				If $HitCounter > 2 Then
 					$mbresult = MsgBox(4, "Внимание", "Рассчитать и внести коррекцию?")
 					If $mbresult = 6 Then
-						For $i = 0 To $HitCounter - 1
-							MsgBox("", "test", $HitArray[$i][0] & @CRLF & $HitArray[$i][1] & @CRLF & $HitArray[$i][2])
-						Next
+;~ 						For $i = 0 To $HitCounter - 1
+;~ 							MsgBox("", "test", $HitArray[$i][0] & @CRLF & $HitArray[$i][1] & @CRLF & $HitArray[$i][2])
+;~ 						Next
+						Find_error()
 					EndIf
 				Else
 					MsgBox("", "Ошибка", "Недостаточно точек попаданий, минимально 3")
@@ -449,15 +451,23 @@ EndFunc   ;==>Solution_fix
 
 Func Find_error()
 	Local $Solution_delta = 0
-	Local $fAngle = 1
+	Local $Solution_delta_old = 90
+	Local $fAngle = 0
 	Local $fAzimuth = 0
 	Local $fAngleStep = 1
 	Local $fAzimuthStep = 1
-
+;~ 	While $fAzimuthStep < 0.001
 	For $i = 0 To $HitCounter - 1
-		$Solution_delta =+ (Solution_fix($HitArray[$i][0], $HitArray[$i][1], $fAzimuth, $fAngle) - $HitArray[$i][3])^2
+		$Solution_delta += (Solution_fix($HitArray[$i][0], $HitArray[$i][1], $fAzimuth, $fAngle) - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $HitArray[$i][3], $HitArray[$i][4])) ^ 2
 	Next
-	$Solution_delta = $Solution_delta
+	$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+;~ 		If $Solution_delta_old < $Solution_delta Then
+
+;~ 		Else
+
+;~ 		EndIf
+;~ 	WEnd
+	MsgBox("", "test", $Solution_delta)
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
@@ -483,3 +493,4 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$Solution[1] = $Corr_rg
 	Return $Solution
 EndFunc   ;==>Geo_fix
+
