@@ -37,7 +37,7 @@
 #NoTrayIcon
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[32][3], $HitCounter = 0
+Global $HitArray[64][3], $HitCounter = 0
 
 GUI_main()
 
@@ -124,11 +124,7 @@ Func GUI_main()
 
 					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_fix_1, 2))
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[1]), 0))
-
-					$HitArray[$HitCounter][0] = $Azimuth
-					$HitArray[$HitCounter][1] = $Solution[0]
-
-					$HitLock = False
+					If $HitCounter < 64 Then $HitLock = False
 				Else
 					MsgBox("", "Ошибка", "Неверно введён квадрат цели или позиции")
 				EndIf
@@ -143,14 +139,18 @@ Func GUI_main()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $hButton11
 				If $HitLock = False Then
-					$1Altitude = GUICtrlRead($Input2) - $Input_aalt
-					$1Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-					$1Solution = Solution($1Range, $1Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
-					$HitArray[$HitCounter][2] = $1Solution[0]
+					$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
+					$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
+					$tAltitude = GUICtrlRead($Input2) - $Input_aalt
+					$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
+					$tSolution = Solution($tRange, $tAltitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
+					$HitArray[$HitCounter][0] = $Azimuth
+					$HitArray[$HitCounter][1] = $Solution[0]
+					$HitArray[$HitCounter][2] = $Solution[0] - $tSolution[0]
 					$HitCounter += 1
 					$HitLock = True
 				Else
-					MsgBox("", "Ошибка", "Не произведён рассчёт выстрела")
+					MsgBox("", "Блокировка", "Не произвёден рассчёт выстрела или досигнут предел памяти попаданий")
 				EndIf
 		EndSwitch
 	WEnd
@@ -232,14 +232,18 @@ Func GUI_position()
 			Case $Slider4
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $hButton12
-				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Сбросить массив коррекции?")
+				$mbresult = MsgBox(4, "Внимание", "Сбросить массив коррекции?")
 				If $mbresult = 6 Then $HitCounter = 0
 			Case $hButton13
-				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Рассчитать и внести коррекцию?")
-				If $mbresult = 6 Then
-					For $i = 0 To $HitCounter
-						MsgBox("", "test", $HitArray[$i][0] & @CRLF & $HitArray[$i][1] & @CRLF & $HitArray[$i][2])
-					Next
+				If $HitCounter > 2 Then
+					$mbresult = MsgBox(4, "Внимание", "Рассчитать и внести коррекцию?")
+					If $mbresult = 6 Then
+						For $i = 0 To $HitCounter - 1
+							MsgBox("", "test", $HitArray[$i][0] & @CRLF & $HitArray[$i][1] & @CRLF & $HitArray[$i][2])
+						Next
+					EndIf
+				Else
+					MsgBox("", "Ошибка", "Недостаточно точек попаданий, минимально 3")
 				EndIf
 		EndSwitch
 	WEnd
@@ -297,7 +301,7 @@ Func GUI_angle()
 				GUIDelete($hGUI_angle)
 				ExitLoop
 			Case $hButton5
-				$mbresult = MsgBox(4, "ВНИМАНИЕ", "Рассчитать и внести коррекцию?")
+				$mbresult = MsgBox(4, "Внимание", "Рассчитать и внести коррекцию?")
 				If $mbresult = 6 Then
 					Local $Fix_azimuth[2]
 					Local $Fix_angle[2]
@@ -443,6 +447,19 @@ Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 	Return $Solution
 EndFunc   ;==>Solution_fix
 
+Func Find_error()
+	Local $Solution_delta = 0
+	Local $fAngle = 1
+	Local $fAzimuth = 0
+	Local $fAngleStep = 1
+	Local $fAzimuthStep = 1
+
+	For $i = 0 To $HitCounter - 1
+		$Solution_delta =+ (Solution_fix($HitArray[$i][0], $HitArray[$i][1], $fAzimuth, $fAngle) - $HitArray[$i][3])^2
+	Next
+	$Solution_delta = $Solution_delta
+EndFunc   ;==>Find_error
+
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	Local $Solution[2]
 	$Dot_x_0 = ($Dot_rg_0 + 100) * Cos(_Radian($Dot_az_0))
@@ -466,10 +483,3 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$Solution[1] = $Corr_rg
 	Return $Solution
 EndFunc   ;==>Geo_fix
-
-Func Find_error($Count)
-	For $i = 0 To $Count
-;~ 		Тут должна быть функция среднеквадратичного расчёта коррекции
-	Next
-EndFunc   ;==>Find_error
-
