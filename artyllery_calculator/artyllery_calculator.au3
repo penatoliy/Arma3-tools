@@ -1,4 +1,5 @@
-﻿#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+﻿#NoTrayIcon
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=doc_math_128px_1086911_easyicon.net.ico
 #AutoIt3Wrapper_Outfile=artyllery_calculator_32.exe
 #AutoIt3Wrapper_Outfile_x64=artyllery_calculator_64.exe
@@ -8,8 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.1.2.13
-#AutoIt3Wrapper_Res_Fileversion_AutoIncrement=p
+#AutoIt3Wrapper_Res_Fileversion=1.2.0.3
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -33,7 +33,6 @@
 #include <StringConstants.au3>
 #include <EditConstants.au3>
 #include <Math.au3>
-#NoTrayIcon
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
 Global $HitArray[64][3], $HitCounter = 0
@@ -314,14 +313,14 @@ Func GUI_angle()
 						$Fix_array[1] = Round($Fix_array[1], 2)
 						If StringIsFloat($Fix_array[0]) Then
 							$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
-							If StringLen($Fix_azimuth[1]) = 1 Then $Fix_azimuth[1] = $Fix_azimuth[1] & 0
+							If StringLen($Fix_azimuth[1]) = 1 Then $Fix_azimuth[1] &= 0
 						Else
 							$Fix_azimuth[0] = $Fix_array[0]
 							$Fix_azimuth[1] = "00"
 						EndIf
 						If StringIsFloat($Fix_array[1]) Then
 							$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
-							If StringLen($Fix_angle[1]) = 1 Then $Fix_angle[1] = $Fix_angle[1] & 0
+							If StringLen($Fix_angle[1]) = 1 Then $Fix_angle[1] &= 0
 						Else
 							$Fix_angle[0] = $Fix_array[1]
 							$Fix_angle[1] = "00"
@@ -453,6 +452,8 @@ Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 EndFunc   ;==>Solution_fix
 
 Func Find_error()
+	Local $fAngle_a[2]
+	Local $fAzimuth_a[2]
 	Local $Solution_delta = 0
 	Local $Solution_delta_old = 90
 	Local $fAngle = 0.01
@@ -461,7 +462,7 @@ Func Find_error()
 	Local $fAzimuthStep = 10
 	Local $fUp = True
 	Local $loop = 10
-	While $loop <> 0
+	While $loop > 0
 		While $fAzimuthStep > 0.000001
 			If $fAzimuth < 0 Then $fAzimuth += 360
 			If $fAzimuth > 360 Then $fAzimuth -= 360
@@ -510,7 +511,26 @@ Func Find_error()
 		WEnd
 		$loop -= 1
 	WEnd
-	MsgBox("", "test", $fAzimuth & @CRLF & $fAngle)
+	$fAzimuth = Round($fAzimuth, 2)
+	$fAngle = Round($fAngle, 2)
+	If StringIsFloat($fAzimuth) Then
+		$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
+		If StringLen($fAzimuth_a[1]) = 1 Then $fAzimuth_a[1] &= 0
+	Else
+		$fAzimuth_a[0] = $fAzimuth
+		$fAzimuth_a[1] = "00"
+	EndIf
+	If StringIsFloat($fAngle) Then
+		$fAngle_a = StringSplit($fAngle, ".", $STR_NOCOUNT)
+		If StringLen($fAngle_a) = 1 Then $fAngle_a[1] &= 0
+	Else
+		$fAngle_a[0] = $fAngle
+		$fAngle_a[1] = "00"
+	EndIf
+	GUICtrlSetData($Input7, $fAzimuth_a[0])
+	GUICtrlSetData($Input8, $fAzimuth_a[1])
+	GUICtrlSetData($Input9, $fAngle_a[0])
+	GUICtrlSetData($Input10, $fAngle_a[1])
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
