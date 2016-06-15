@@ -36,7 +36,7 @@
 #NoTrayIcon
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[64][5], $HitCounter = 0
+Global $HitArray[64][3], $HitCounter = 0
 
 GUI_main()
 
@@ -146,8 +146,8 @@ Func GUI_main()
 					$HitArray[$HitCounter][0] = $Azimuth
 					$HitArray[$HitCounter][1] = $Solution[0]
 					$HitArray[$HitCounter][2] = $tSolution[0]
-					$HitArray[$HitCounter][3] = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
-					$HitArray[$HitCounter][4] = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
+;~ 					$HitArray[$HitCounter][3] = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
+;~ 					$HitArray[$HitCounter][4] = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 					$HitCounter += 1
 					$HitLock = True
 				Else
@@ -430,8 +430,11 @@ EndFunc   ;==>Azimuth_to
 Func Solution($Range, $Altitude, $Velocity)
 	Local $Solution[2]
 	Const $g = 9.80665
-	$Solution[0] = _Degree(ATan(($Velocity ^ 2 + Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
-	$Solution[1] = _Degree(ATan(($Velocity ^ 2 - Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))) / ($g * $Range)))
+	Local $gx = $g * $Range
+	Local $v2 = $Velocity ^ 2
+	Local $rt = Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))
+	$Solution[0] = _Degree(ATan(($v2 + $rt) / $gx))
+	$Solution[1] = _Degree(ATan(($v2 - $rt) / $gx))
 	Return $Solution
 EndFunc   ;==>Solution
 
@@ -452,22 +455,62 @@ EndFunc   ;==>Solution_fix
 Func Find_error()
 	Local $Solution_delta = 0
 	Local $Solution_delta_old = 90
-	Local $fAngle = 0
-	Local $fAzimuth = 0
+	Local $fAngle = 0.01
+	Local $fAzimuth = 180
 	Local $fAngleStep = 1
-	Local $fAzimuthStep = 1
-;~ 	While $fAzimuthStep < 0.001
-	For $i = 0 To $HitCounter - 1
-		$Solution_delta += (Solution_fix($HitArray[$i][0], $HitArray[$i][1], $fAzimuth, $fAngle) - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $HitArray[$i][3], $HitArray[$i][4])) ^ 2
-	Next
-	$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-;~ 		If $Solution_delta_old < $Solution_delta Then
-
-;~ 		Else
-
-;~ 		EndIf
-;~ 	WEnd
-	MsgBox("", "test", $Solution_delta)
+	Local $fAzimuthStep = 10
+	Local $fUp = True
+	Local $loop = 10
+	While $loop <> 0
+		While $fAzimuthStep > 0.000001
+			If $fAzimuth < 0 Then $fAzimuth += 360
+			If $fAzimuth > 360 Then $fAzimuth -= 360
+			$Solution_delta = 0
+			For $i = 0 To $HitCounter - 1
+				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+			Next
+			$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+			If $Solution_delta_old >= $Solution_delta Then
+				If $fUp = True Then
+					$fAzimuth += $fAzimuthStep
+				Else
+					$fAzimuth -= $fAzimuthStep
+				EndIf
+			Else
+				$fAzimuthStep /= 2
+				If $fUp = True Then
+					$fUp = False
+				Else
+					$fUp = True
+				EndIf
+			EndIf
+			$Solution_delta_old = $Solution_delta
+		WEnd
+		While $fAngleStep > 0.000001
+			$Solution_delta = 0
+			For $i = 0 To $HitCounter - 1
+				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+			Next
+			$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+			If $Solution_delta_old >= $Solution_delta Then
+				If $fUp = True Then
+					$fAngle += $fAngleStep
+				Else
+					$fAngle -= $fAngleStep
+				EndIf
+			Else
+				$fAngleStep /= 2
+				If $fUp = True Then
+					$fUp = False
+				Else
+					$fUp = True
+				EndIf
+			EndIf
+			$Solution_delta_old = $Solution_delta
+		WEnd
+		$loop -= 1
+	WEnd
+	MsgBox("", "test", $fAzimuth & @CRLF & $fAngle)
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
