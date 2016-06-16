@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.0.5
+#AutoIt3Wrapper_Res_Fileversion=1.2.0.8
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -32,6 +32,7 @@
 #include <StaticConstants.au3>
 #include <StringConstants.au3>
 #include <EditConstants.au3>
+#include <MsgBoxConstants.au3>
 #include <Math.au3>
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
@@ -127,13 +128,15 @@ Func GUI_main()
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[1]), 0))
 					If $HitCounter < 64 Then $HitLock = False
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат цели или позиции")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат цели или позиции")
+					WinActivate($hGUI_main)
 				EndIf
 			Case $hButton2
 				GUISetState(@SW_DISABLE, $hGUI_main)
 				GUI_position()
 			Case $hButton10
-				MsgBox(262144, "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
+				MsgBox(BitOR($MB_ICONINFORMATION, $MB_TOPMOST), "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
+				WinActivate($hGUI_main)
 			Case $Slider1
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $Slider2
@@ -154,7 +157,8 @@ Func GUI_main()
 					$HitCounter += 1
 					$HitLock = True
 				Else
-					MsgBox("", "Блокировка", "Не произвёден рассчёт выстрела или досигнут предел памяти попаданий")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела или досигнут предел памяти попаданий")
+					WinActivate($hGUI_main)
 				EndIf
 		EndSwitch
 	WEnd
@@ -215,7 +219,8 @@ Func GUI_position()
 					GUIDelete($hGUI_position)
 					ExitLoop
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции")
+					WinActivate($hGUI_position)
 				EndIf
 			Case $hButton4
 				If StringLen(GUICtrlRead($Input3)) = 6 Then
@@ -229,24 +234,27 @@ Func GUI_position()
 					GUISetState(@SW_DISABLE, $hGUI_position)
 					GUI_angle()
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат позиции")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции")
+					WinActivate($hGUI_position)
 				EndIf
 			Case $Slider3
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $Slider4
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $hButton12
-				$mbresult = MsgBox(4, "Внимание", "Сбросить массив коррекции?")
+				$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Сбросить массив коррекции?")
 				If $mbresult = 6 Then $HitCounter = 0
+				WinActivate($hGUI_position)
 			Case $hButton13
 				If $HitCounter > 2 Then
-					$mbresult = MsgBox(4, "Внимание", "Рассчитать и внести коррекцию?")
+					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Рассчитать и внести коррекцию?")
 					If $mbresult = 6 Then
 						Find_error()
 					EndIf
 				Else
-					MsgBox("", "Ошибка", "Недостаточно точек попаданий, минимально 3")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно точек попаданий, минимально 3")
 				EndIf
+				WinActivate($hGUI_position)
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_position
@@ -303,7 +311,7 @@ Func GUI_angle()
 				GUIDelete($hGUI_angle)
 				ExitLoop
 			Case $hButton5
-				$mbresult = MsgBox(4, "Внимание", "Рассчитать и внести коррекцию?")
+				$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Рассчитать и внести коррекцию?")
 				If $mbresult = 6 Then
 					Local $Fix_azimuth[2]
 					Local $Fix_angle[2]
@@ -331,9 +339,10 @@ Func GUI_angle()
 						GUICtrlSetData($Input9, $Fix_angle[0])
 						GUICtrlSetData($Input10, StringLeft($Fix_angle[1], 2))
 					Else
-						MsgBox("", "Ошибка", "Углы ориентиров не установлены")
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Углы ориентиров не установлены")
 					EndIf
 				EndIf
+				WinActivate($hGUI_angle)
 			Case $hButton6
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
 					$Square_ox_0 = StringLeft(GUICtrlRead($Input11), 3)
@@ -349,7 +358,8 @@ Func GUI_angle()
 					$DAngle_o_0 = $Angle_o_0 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
 					GUICtrlSetData($Label_fix_0, Round($Azimuth_o_0, 0) & "@" & Round($DAngle_o_0, 2))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат ориентира")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
+					WinActivate($hGUI_angle)
 				EndIf
 			Case $hButton7
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
@@ -366,7 +376,8 @@ Func GUI_angle()
 					$DAngle_o_1 = $Angle_o_1 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
 					GUICtrlSetData($Label_fix_1, Round($Azimuth_o_1, 0) & "@" & Round($DAngle_o_1, 2))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат ориентира")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
+					WinActivate($hGUI_angle)
 				EndIf
 			Case $hButton9
 				If StringLen(GUICtrlRead($Input11)) = 6 Then
@@ -383,10 +394,11 @@ Func GUI_angle()
 					$DAngle_o_2 = $Angle_o_2 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
 					GUICtrlSetData($Label_fix_2, Round($Azimuth_o_2, 0) & "@" & Round($DAngle_o_2, 2))
 				Else
-					MsgBox("", "Ошибка", "Неверно введён квадрат ориентира")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
+					WinActivate($hGUI_angle)
 				EndIf
 			Case $hButton8
-				GUICtrlSetData($Input13, "-" & GUICtrlRead($Input13))
+				GUICtrlSetData($Input13, GUICtrlRead($Input13) * -1)
 			Case $Slider5
 				GUICtrlSetPos($Graphic9, 86 + GUICtrlRead($Slider5) * 2.98, 334 - GUICtrlRead($Slider6) * -2.98)
 			Case $Slider6
@@ -460,13 +472,12 @@ Func Find_error()
 	Local $fAngle = 0.01
 	Local $fAzimuth = 180
 	Local $fAngleStep = 1
-	Local $fAzimuthStep = 10
+	Local $fAzimuthStep = 8
 	Local $fUp = True
-	Local $loop = 10
-	While $loop > 0
-		$fAngleStep = 1
-		$fAzimuthStep = 10
-		While $fAzimuthStep > 0.000001
+	Local $pre_current = 0.1
+	Local $pre_target = 0.000001
+	While $pre_current > $pre_target
+		While $fAzimuthStep > $pre_current
 			If $fAzimuth < 0 Then $fAzimuth += 360
 			If $fAzimuth > 360 Then $fAzimuth -= 360
 			$Solution_delta = 0
@@ -490,7 +501,7 @@ Func Find_error()
 			EndIf
 			$Solution_delta_old = $Solution_delta
 		WEnd
-		While $fAngleStep > 0.000001
+		While $fAngleStep > $pre_current
 			$Solution_delta = 0
 			For $i = 0 To $HitCounter - 1
 				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
@@ -512,7 +523,7 @@ Func Find_error()
 			EndIf
 			$Solution_delta_old = $Solution_delta
 		WEnd
-		$loop -= 1
+		$pre_current /= 2
 	WEnd
 	$fAzimuth = Round($fAzimuth, 2)
 	$fAngle = Round($fAngle, 2)
@@ -560,3 +571,6 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	Return $Solution
 EndFunc   ;==>Geo_fix
 
+Func GUI_tip()
+;~ 	тут должна быть функция хранения скоростей снарядов
+EndFunc   ;==>GUI_tip
