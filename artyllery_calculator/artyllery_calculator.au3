@@ -1,15 +1,15 @@
 ﻿#NoTrayIcon
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=doc_math_128px_1086911_easyicon.net.ico
-#AutoIt3Wrapper_Outfile=artyllery_calculator_32.exe
-#AutoIt3Wrapper_Outfile_x64=artyllery_calculator_64.exe
+#AutoIt3Wrapper_Outfile=release\32\artyllery_calculator_32.exe
+#AutoIt3Wrapper_Outfile_x64=release\64\artyllery_calculator_64.exe
 #AutoIt3Wrapper_Compression=4
 #AutoIt3Wrapper_UseUpx=y
 #AutoIt3Wrapper_Compile_Both=y
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.0.3
+#AutoIt3Wrapper_Res_Fileversion=1.2.0.5
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -105,14 +105,17 @@ Func GUI_main()
 				ExitLoop
 			Case $hButton1
 				If StringLen(GUICtrlRead($Input1)) = 6 And StringLen($Square_ax & $Square_ay) = 6 Then
+					$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
+					$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
+					$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
 					$Input_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
 					$Input_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
 					$Altitude = GUICtrlRead($Input2) - $Input_aalt
 					$Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 					$Azimuth = Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-					$Solution = Solution($Range, $Altitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
-					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
-					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], GUICtrlRead($Input7) & "." & GUICtrlRead($Input8), GUICtrlRead($Input9) & "." & GUICtrlRead($Input10))
+					$Solution = Solution($Range, $Altitude, $iSpeed)
+					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], $iAzimuth_fix, $iAngle_fix)
+					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], $iAzimuth_fix, $iAngle_fix)
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
 					GUICtrlSetData($Label_altitude, "Возвышение:   " & Round(_Degree(ATan($Altitude / $Range)), 1))
 					GUICtrlSetData($Label_azimut, "Азимут:            " & Round($Azimuth, 2))
@@ -137,16 +140,17 @@ Func GUI_main()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $hButton11
 				If $HitLock = False Then
+					$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
+					$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
+					$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
 					$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
 					$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
 					$tAltitude = GUICtrlRead($Input2) - $Input_aalt
 					$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
-					$tSolution = Solution($tRange, $tAltitude, GUICtrlRead($Input5) & "." & GUICtrlRead($Input6))
+					$tSolution = Solution($tRange, $tAltitude, $iSpeed)
 					$HitArray[$HitCounter][0] = $Azimuth
 					$HitArray[$HitCounter][1] = $Solution[0]
-					$HitArray[$HitCounter][2] = $tSolution[0]
-;~ 					$HitArray[$HitCounter][3] = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
-;~ 					$HitArray[$HitCounter][4] = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
+					$HitArray[$HitCounter][2] = Solution_fix($Azimuth, $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
 					$HitCounter += 1
 					$HitLock = True
 				Else
@@ -238,9 +242,6 @@ Func GUI_position()
 				If $HitCounter > 2 Then
 					$mbresult = MsgBox(4, "Внимание", "Рассчитать и внести коррекцию?")
 					If $mbresult = 6 Then
-;~ 						For $i = 0 To $HitCounter - 1
-;~ 							MsgBox("", "test", $HitArray[$i][0] & @CRLF & $HitArray[$i][1] & @CRLF & $HitArray[$i][2])
-;~ 						Next
 						Find_error()
 					EndIf
 				Else
@@ -463,6 +464,8 @@ Func Find_error()
 	Local $fUp = True
 	Local $loop = 10
 	While $loop > 0
+		$fAngleStep = 1
+		$fAzimuthStep = 10
 		While $fAzimuthStep > 0.000001
 			If $fAzimuth < 0 Then $fAzimuth += 360
 			If $fAzimuth > 360 Then $fAzimuth -= 360
