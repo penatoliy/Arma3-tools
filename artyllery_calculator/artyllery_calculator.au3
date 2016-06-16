@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.1.0
+#AutoIt3Wrapper_Res_Fileversion=1.2.1.1
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -462,7 +462,7 @@ Func Find_error()
 	Local $fAngleStep = 1
 	Local $fAzimuthStep = 8
 	Local $fUp = True
-	Local $pre_current = 0.1
+	Local $pre_current = 0.25
 	Local $pre_target = 0.000001
 	While $pre_current > $pre_target
 		While $fAzimuthStep > $pre_current
