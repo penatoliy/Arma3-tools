@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.0.8
+#AutoIt3Wrapper_Res_Fileversion=1.2.1.0
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -118,13 +118,13 @@ Func GUI_main()
 					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], $iAzimuth_fix, $iAngle_fix)
 					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], $iAzimuth_fix, $iAngle_fix)
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
-					GUICtrlSetData($Label_altitude, "Возвышение:   " & Round(_Degree(ATan($Altitude / $Range)), 1))
-					GUICtrlSetData($Label_azimut, "Азимут:            " & Round($Azimuth, 2))
+					GUICtrlSetData($Label_altitude, "Возвышение:   " & StringFormat("%.1f", (_Degree(ATan($Altitude / $Range)))))
+					GUICtrlSetData($Label_azimut, "Азимут:            " & StringFormat("%.1f", $Azimuth))
 
-					GUICtrlSetData($Label_solution_0, "Навесная:        " & Round($Solution_fix_0, 2))
+					GUICtrlSetData($Label_solution_0, "Навесная:        " & StringFormat("%.2f", $Solution_fix_0))
 					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[0]), 0))
 
-					GUICtrlSetData($Label_solution_1, "Настильная:    " & Round($Solution_fix_1, 2))
+					GUICtrlSetData($Label_solution_1, "Настильная:    " & StringFormat("%.2f", $Solution_fix_1))
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[1]), 0))
 					If $HitCounter < 64 Then $HitLock = False
 				Else
@@ -317,27 +317,15 @@ Func GUI_angle()
 					Local $Fix_angle[2]
 					If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
 						$Fix_array = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
-						GUICtrlSetData($Label_fix, Round($Fix_array[0], 0) & "@" & Round($Fix_array[1], 2))
-						$Fix_array[0] = Round($Fix_array[0], 2)
-						$Fix_array[1] = Round($Fix_array[1], 2)
-						If StringIsFloat($Fix_array[0]) Then
-							$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
-							If StringLen($Fix_azimuth[1]) = 1 Then $Fix_azimuth[1] &= 0
-						Else
-							$Fix_azimuth[0] = $Fix_array[0]
-							$Fix_azimuth[1] = "00"
-						EndIf
-						If StringIsFloat($Fix_array[1]) Then
-							$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
-							If StringLen($Fix_angle[1]) = 1 Then $Fix_angle[1] &= 0
-						Else
-							$Fix_angle[0] = $Fix_array[1]
-							$Fix_angle[1] = "00"
-						EndIf
+						GUICtrlSetData($Label_fix, StringFormat("%.2f", $Fix_array[0]) & "@" & StringFormat("%.2f", $Fix_array[1]))
+						$Fix_array[0] = StringFormat("%.2f", $Fix_array[0])
+						$Fix_array[1] = StringFormat("%.2f", $Fix_array[1])
+						$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
+						$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
 						GUICtrlSetData($Input7, $Fix_azimuth[0])
-						GUICtrlSetData($Input8, StringLeft($Fix_azimuth[1], 2))
+						GUICtrlSetData($Input8, $Fix_azimuth[1])
 						GUICtrlSetData($Input9, $Fix_angle[0])
-						GUICtrlSetData($Input10, StringLeft($Fix_angle[1], 2))
+						GUICtrlSetData($Input10, $Fix_angle[1])
 					Else
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Углы ориентиров не установлены")
 					EndIf
@@ -356,7 +344,7 @@ Func GUI_angle()
 					$Angle_o_0 = _Degree(ATan($Altitude_o_0 / $Range_o_0))
 					$Azimuth_o_0 = Azimuth_to($Input_ax, $Input_ay, $Input_ox_0, $Input_oy_0)
 					$DAngle_o_0 = $Angle_o_0 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
-					GUICtrlSetData($Label_fix_0, Round($Azimuth_o_0, 0) & "@" & Round($DAngle_o_0, 2))
+					GUICtrlSetData($Label_fix_0, StringFormat("%.1f", $Azimuth_o_0) & "@" & StringFormat("%.1f", $DAngle_o_0))
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
 					WinActivate($hGUI_angle)
@@ -374,7 +362,7 @@ Func GUI_angle()
 					$Angle_o_1 = _Degree(ATan($Altitude_o_1 / $Range_o_1))
 					$Azimuth_o_1 = Azimuth_to($Input_ax, $Input_ay, $Input_ox_1, $Input_oy_1)
 					$DAngle_o_1 = $Angle_o_1 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
-					GUICtrlSetData($Label_fix_1, Round($Azimuth_o_1, 0) & "@" & Round($DAngle_o_1, 2))
+					GUICtrlSetData($Label_fix_1, StringFormat("%.1f", $Azimuth_o_1) & "@" & StringFormat("%.1f", $DAngle_o_1))
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
 					WinActivate($hGUI_angle)
@@ -392,7 +380,7 @@ Func GUI_angle()
 					$Angle_o_2 = _Degree(ATan($Altitude_o_2 / $Range_o_2))
 					$Azimuth_o_2 = Azimuth_to($Input_ax, $Input_ay, $Input_ox_2, $Input_oy_2)
 					$DAngle_o_2 = $Angle_o_2 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
-					GUICtrlSetData($Label_fix_2, Round($Azimuth_o_2, 0) & "@" & Round($DAngle_o_2, 2))
+					GUICtrlSetData($Label_fix_2, StringFormat("%.1f", $Azimuth_o_2) & "@" & StringFormat("%.1f", $DAngle_o_2))
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
 					WinActivate($hGUI_angle)
@@ -525,22 +513,10 @@ Func Find_error()
 		WEnd
 		$pre_current /= 2
 	WEnd
-	$fAzimuth = Round($fAzimuth, 2)
-	$fAngle = Round($fAngle, 2)
-	If StringIsFloat($fAzimuth) Then
-		$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
-		If StringLen($fAzimuth_a[1]) = 1 Then $fAzimuth_a[1] &= 0
-	Else
-		$fAzimuth_a[0] = $fAzimuth
-		$fAzimuth_a[1] = "00"
-	EndIf
-	If StringIsFloat($fAngle) Then
-		$fAngle_a = StringSplit($fAngle, ".", $STR_NOCOUNT)
-		If StringLen($fAngle_a) = 1 Then $fAngle_a[1] &= 0
-	Else
-		$fAngle_a[0] = $fAngle
-		$fAngle_a[1] = "00"
-	EndIf
+	$fAzimuth = StringFormat("%.2f", $fAzimuth)
+	$fAngle = StringFormat("%.2f", $fAngle)
+	$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
+	$fAngle_a = StringSplit($fAngle, ".", $STR_NOCOUNT)
 	GUICtrlSetData($Input7, $fAzimuth_a[0])
 	GUICtrlSetData($Input8, $fAzimuth_a[1])
 	GUICtrlSetData($Input9, $fAngle_a[0])
