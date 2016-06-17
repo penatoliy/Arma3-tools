@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.1.1
+#AutoIt3Wrapper_Res_Fileversion=1.2.1.3
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -249,7 +249,9 @@ Func GUI_position()
 				If $HitCounter > 2 Then
 					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Рассчитать и внести коррекцию?")
 					If $mbresult = 6 Then
+						GUISetState(@SW_DISABLE, $hGUI_position)
 						Find_error()
+						GUISetState(@SW_ENABLE, $hGUI_position)
 					EndIf
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно точек попаданий, минимально 3")
@@ -432,7 +434,7 @@ Func Solution($Range, $Altitude, $Velocity)
 	Const $g = 9.80665
 	Local $gx = $g * $Range
 	Local $v2 = $Velocity ^ 2
-	Local $rt = Sqrt($Velocity ^ 4 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $Velocity ^ 2))
+	Local $rt = Sqrt($v2 ^ 2 - $g * ($gx ^ 2 + 2 * $Altitude * $v2))
 	$Solution[0] = _Degree(ATan(($v2 + $rt) / $gx))
 	$Solution[1] = _Degree(ATan(($v2 - $rt) / $gx))
 	Return $Solution
@@ -455,63 +457,79 @@ EndFunc   ;==>Solution_fix
 Func Find_error()
 	Local $fAngle_a[2]
 	Local $fAzimuth_a[2]
-	Local $Solution_delta = 0
+	Local $Solution_delta
 	Local $Solution_delta_old = 90
-	Local $fAngle = 0.01
 	Local $fAzimuth = 180
-	Local $fAngleStep = 1
 	Local $fAzimuthStep = 8
-	Local $fUp = True
-	Local $pre_current = 0.25
-	Local $pre_target = 0.000001
-	While $pre_current > $pre_target
-		While $fAzimuthStep > $pre_current
-			If $fAzimuth < 0 Then $fAzimuth += 360
-			If $fAzimuth > 360 Then $fAzimuth -= 360
+	Local $fAngle = 0.0001
+	Local $fAngleStep = 0.5
+	Local $fUp_az = True
+	Local $fUp_an = True
+	Local $precision_az = 32
+	Local $precision_an = 2
+
+	While $precision_az > 0.0001 And $precision_an > 0.0001
+		While $fAzimuthStep > $precision_az
+			If $fAzimuth < 0 Then
+				$fAzimuth += 360
+			EndIf
+			If $fAzimuth > 360 Then
+				$fAzimuth -= 360
+			EndIf
 			$Solution_delta = 0
 			For $i = 0 To $HitCounter - 1
 				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
 			Next
 			$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-			If $Solution_delta_old >= $Solution_delta Then
-				If $fUp = True Then
+			If $Solution_delta_old > $Solution_delta Then
+				If $fUp_az = True Then
 					$fAzimuth += $fAzimuthStep
 				Else
 					$fAzimuth -= $fAzimuthStep
 				EndIf
 			Else
 				$fAzimuthStep /= 2
-				If $fUp = True Then
-					$fUp = False
+				If $fUp_az = True Then
+					$fAzimuth -= $fAzimuthStep
+					$fUp_az = False
 				Else
-					$fUp = True
+					$fAzimuth += $fAzimuthStep
+					$fUp_az = True
 				EndIf
 			EndIf
 			$Solution_delta_old = $Solution_delta
 		WEnd
-		While $fAngleStep > $pre_current
+		$precision_az /= 2
+		While $fAngleStep > $precision_an
+			If $fAngle <= 0 Then
+				$fUp_an = True
+				$fAngle = 90
+				$precision_az *= 2
+			EndIf
 			$Solution_delta = 0
 			For $i = 0 To $HitCounter - 1
 				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
 			Next
 			$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-			If $Solution_delta_old >= $Solution_delta Then
-				If $fUp = True Then
+			If $Solution_delta_old > $Solution_delta Then
+				If $fUp_an = True Then
 					$fAngle += $fAngleStep
 				Else
 					$fAngle -= $fAngleStep
 				EndIf
 			Else
 				$fAngleStep /= 2
-				If $fUp = True Then
-					$fUp = False
+				If $fUp_an = True Then
+					$fAngle -= $fAngleStep
+					$fUp_an = False
 				Else
-					$fUp = True
+					$fAngle += $fAngleStep
+					$fUp_an = True
 				EndIf
 			EndIf
 			$Solution_delta_old = $Solution_delta
 		WEnd
-		$pre_current /= 2
+		$precision_an /= 2
 	WEnd
 	$fAzimuth = StringFormat("%.2f", $fAzimuth)
 	$fAngle = StringFormat("%.2f", $fAngle)
