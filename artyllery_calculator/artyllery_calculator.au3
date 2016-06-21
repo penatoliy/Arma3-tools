@@ -35,6 +35,7 @@
 #include <MsgBoxConstants.au3>
 #include <Math.au3>
 
+Global Const $g = 9.80665
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt, $Input7, $Input8, $Input9, $Input10
 Global $HitArray[64][3], $HitCounter = 0, $Solution_delta
 
@@ -96,8 +97,9 @@ Func GUI_main()
 	$Label_solution_1 = GUICtrlCreateLabel("Настильная:", 10, 290, 130, 20, $SS_LEFT)
 	$Label_solution_1_ETA = GUICtrlCreateLabel("Время:", 10, 310, 130, 20, $SS_LEFT)
 
-	GUISetState()
+	$HitLock = True
 
+	GUISetState()
 
 	While 1
 		Switch GUIGetMsg()
@@ -120,6 +122,13 @@ Func GUI_main()
 					$oAltitude = StringFormat("%.1f", (_Degree(ATan($Altitude / $Range))))
 					If Not StringIsFloat($oAltitude) Then $oAltitude = "Ошибка"
 
+					If $Range = 0 Then
+						$oAzimuth = "Ошибка"
+						$Azimuth = ""
+					Else
+						$oAzimuth = StringFormat("%.1f", $Azimuth)
+					EndIf
+
 					$oSolution_0 = StringFormat("%.2f", $Solution_fix_0)
 					If Not StringIsFloat($oSolution_0) Then $oSolution_0 = "Ошибка"
 					$oTime_0 = Round(Time_to($Range, $iSpeed, $Solution[0]), 0)
@@ -132,7 +141,7 @@ Func GUI_main()
 
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
 					GUICtrlSetData($Label_altitude, "Возвышение:   " & $oAltitude)
-					GUICtrlSetData($Label_azimut, "Азимут:            " & StringFormat("%.1f", $Azimuth))
+					GUICtrlSetData($Label_azimut, "Азимут:            " & $oAzimuth)
 
 					GUICtrlSetData($Label_solution_0, "Навесная:        " & $oSolution_0)
 					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & $oTime_0)
@@ -180,7 +189,6 @@ Func GUI_main()
 						$HitLock = True
 					Else
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный выстрел")
-						WinActivate($hGUI_main)
 					EndIf
 				Else
 					If $HitCounter < 64 Then
@@ -188,8 +196,8 @@ Func GUI_main()
 					Else
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Достигнут предел массива коррекции, максимум 64")
 					EndIf
-					WinActivate($hGUI_main)
 				EndIf
+				WinActivate($hGUI_main)
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_main
@@ -224,7 +232,12 @@ Func GUI_position()
 	GUICtrlSetData($Slider3, $Square_pax)
 	GUICtrlSetData($Slider4, $Square_pay)
 	GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
-	GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
+
+	If Not $Solution_delta Then
+		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
+	Else
+		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
+	EndIf
 
 	GUISetState()
 
@@ -275,7 +288,11 @@ Func GUI_position()
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $hButton12
 				$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Сбросить массив коррекции?")
-				If $mbresult = 6 Then $HitCounter = 0
+				If $mbresult = 6 Then
+					$HitCounter = 0
+					$Solution_delta = ""
+					GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
+				EndIf
 				WinActivate($hGUI_position)
 			Case $hButton13
 				If $HitCounter > 2 Then
@@ -379,7 +396,12 @@ Func GUI_angle()
 					$Angle_o_0 = _Degree(ATan($Altitude_o_0 / $Range_o_0))
 					$Azimuth_o_0 = Azimuth_to($Input_ax, $Input_ay, $Input_ox_0, $Input_oy_0)
 					$DAngle_o_0 = $Angle_o_0 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
-					GUICtrlSetData($Label_fix_0, StringFormat("%.1f", $Azimuth_o_0) & "@" & StringFormat("%.1f", $DAngle_o_0))
+					If $Range_o_0 = 0 Then
+						GUICtrlSetData($Label_fix_0, "Ошибка")
+						$Range_o_0 = ""
+					Else
+						GUICtrlSetData($Label_fix_0, StringFormat("%.1f", $Azimuth_o_0) & "@" & StringFormat("%.1f", $DAngle_o_0))
+					EndIf
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
 					WinActivate($hGUI_angle)
@@ -397,7 +419,12 @@ Func GUI_angle()
 					$Angle_o_1 = _Degree(ATan($Altitude_o_1 / $Range_o_1))
 					$Azimuth_o_1 = Azimuth_to($Input_ax, $Input_ay, $Input_ox_1, $Input_oy_1)
 					$DAngle_o_1 = $Angle_o_1 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
-					GUICtrlSetData($Label_fix_1, StringFormat("%.1f", $Azimuth_o_1) & "@" & StringFormat("%.1f", $DAngle_o_1))
+					If $Range_o_1 = 0 Then
+						GUICtrlSetData($Label_fix_1, "Ошибка")
+						$Range_o_1 = ""
+					Else
+						GUICtrlSetData($Label_fix_1, StringFormat("%.1f", $Azimuth_o_1) & "@" & StringFormat("%.1f", $DAngle_o_1))
+					EndIf
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
 					WinActivate($hGUI_angle)
@@ -415,7 +442,12 @@ Func GUI_angle()
 					$Angle_o_2 = _Degree(ATan($Altitude_o_2 / $Range_o_2))
 					$Azimuth_o_2 = Azimuth_to($Input_ax, $Input_ay, $Input_ox_2, $Input_oy_2)
 					$DAngle_o_2 = $Angle_o_2 - (GUICtrlRead($Input13) & "." & GUICtrlRead($Input14))
-					GUICtrlSetData($Label_fix_2, StringFormat("%.1f", $Azimuth_o_2) & "@" & StringFormat("%.1f", $DAngle_o_2))
+					If $Range_o_2 = 0 Then
+						GUICtrlSetData($Label_fix_2, "Ошибка")
+						$Range_o_2 = ""
+					Else
+						GUICtrlSetData($Label_fix_2, StringFormat("%.1f", $Azimuth_o_2) & "@" & StringFormat("%.1f", $DAngle_o_2))
+					EndIf
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
 					WinActivate($hGUI_angle)
@@ -438,7 +470,11 @@ EndFunc   ;==>Range_finder
 
 Func Time_to($Range, $Velocity, $Solution)
 	Local $ETA
-	$ETA = ($Range / ($Velocity * Cos(_Radian($Solution))))
+	If $Range = 0 And (StringIsFloat($Solution) Or StringIsDigit($Solution)) Then
+		$ETA = ($Velocity / $g) * 2
+	Else
+		$ETA = ($Range / ($Velocity * Cos(_Radian($Solution))))
+	EndIf
 	Return $ETA
 EndFunc   ;==>Time_to
 
@@ -464,7 +500,6 @@ Func Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 EndFunc   ;==>Azimuth_to
 
 Func Solution($Range, $Altitude, $Velocity)
-	Local Const $g = 9.80665
 	Local $gx, $v2, $rt, $Solution[2]
 	$gx = $g * $Range
 	$v2 = $Velocity ^ 2
@@ -567,7 +602,6 @@ Func Find_error()
 		$iter *= 2
 	Until $precision_az < 0.0001
 
-
 	$fAzimuth = StringFormat("%.3f", $fAzimuth)
 	$fAngle = StringFormat("%.3f", $fAngle)
 	$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
@@ -579,7 +613,7 @@ Func Find_error()
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
-	Local $Dot_x_0, $Dot_y_0, $Dot_x_1, $Dot_y_1, $Dot_x_2, $Dot_y_2, $A, $B, $C, $D, $E, $F, $g, $Cx, $Cy, $Solution[2]
+	Local $Dot_x_0, $Dot_y_0, $Dot_x_1, $Dot_y_1, $Dot_x_2, $Dot_y_2, $A, $B, $C, $D, $E, $F, $X, $Cx, $Cy, $Solution[2]
 	$Dot_x_0 = ($Dot_rg_0 + 100) * Cos(_Radian($Dot_az_0))
 	$Dot_y_0 = ($Dot_rg_0 + 100) * Sin(_Radian($Dot_az_0))
 	$Dot_x_1 = ($Dot_rg_1 + 100) * Cos(_Radian($Dot_az_1))
@@ -592,9 +626,9 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$D = $Dot_y_2 - $Dot_y_0
 	$E = $A * ($Dot_x_0 + $Dot_x_1) + $B * ($Dot_y_0 + $Dot_y_1)
 	$F = $C * ($Dot_x_0 + $Dot_x_2) + $D * ($Dot_y_0 + $Dot_y_2)
-	$g = 2 * ($A * ($Dot_y_2 - $Dot_y_1) - $B * ($Dot_x_2 - $Dot_x_1))
-	$Cx = ($D * $E - $B * $F) / $g
-	$Cy = ($A * $F - $C * $E) / $g
+	$X = 2 * ($A * ($Dot_y_2 - $Dot_y_1) - $B * ($Dot_x_2 - $Dot_x_1))
+	$Cx = ($D * $E - $B * $F) / $X
+	$Cy = ($A * $F - $C * $E) / $X
 	$Solution[1] = Sqrt($Cx ^ 2 + $Cy ^ 2)
 	$Solution[0] = _Degree(ACos($Cx / ($Solution[1])))
 	Return $Solution
