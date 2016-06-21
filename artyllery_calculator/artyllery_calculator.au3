@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.2
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.4
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -55,19 +55,19 @@ Func GUI_main()
 	$Input1 = GUICtrlCreateInput("", 440, 10, 45, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Квадрат:", 380, 13, 50, 20, $SS_LEFT)
 
-	$Input2 = GUICtrlCreateInput("0", 300, 10, 45, 20, $ES_NUMBER)
+	$Input2 = GUICtrlCreateInput("", 300, 10, 45, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Высота:", 240, 13, 50, 20, $SS_LEFT)
 
-	$Input5 = GUICtrlCreateInput("243", 80, 65, 40, 20, $ES_NUMBER)
-	$Input6 = GUICtrlCreateInput("00", 125, 65, 20, 20, $ES_NUMBER)
+	$Input5 = GUICtrlCreateInput("", 80, 65, 30, 20, $ES_NUMBER)
+	$Input6 = GUICtrlCreateInput("", 115, 65, 25, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Скорость снаряда:", 10, 60, 55, 40, $SS_LEFT)
 
-	$Input7 = GUICtrlCreateInput("0", 80, 95, 40, 20, $ES_NUMBER)
-	$Input8 = GUICtrlCreateInput("00", 125, 95, 20, 20, $ES_NUMBER)
+	$Input7 = GUICtrlCreateInput("", 80, 95, 30, 20, $ES_NUMBER)
+	$Input8 = GUICtrlCreateInput("", 115, 95, 25, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Азимут коррекции:", 10, 90, 60, 40, $SS_LEFT)
 
-	$Input9 = GUICtrlCreateInput("0", 80, 125, 40, 20, $ES_NUMBER)
-	$Input10 = GUICtrlCreateInput("00", 125, 125, 20, 20, $ES_NUMBER)
+	$Input9 = GUICtrlCreateInput("", 80, 125, 30, 20, $ES_NUMBER)
+	$Input10 = GUICtrlCreateInput("", 115, 125, 25, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Угол коррекции:", 10, 120, 60, 40, $SS_LEFT)
 
 
@@ -77,13 +77,13 @@ Func GUI_main()
 	$Graphic2 = GUICtrlCreateGraphic(186, 334)
 	GUICtrlSetGraphic($Graphic2, $GUI_GR_ELLIPSE, 0, 0, 10, 10)
 
-	$Graphic5 = GUICtrlCreateGraphic(122, 80)
+	$Graphic5 = GUICtrlCreateGraphic(112, 80)
 	GUICtrlSetGraphic($Graphic5, $GUI_GR_DOT, 0, 0)
 
-	$Graphic6 = GUICtrlCreateGraphic(122, 110)
+	$Graphic6 = GUICtrlCreateGraphic(112, 110)
 	GUICtrlSetGraphic($Graphic6, $GUI_GR_DOT, 0, 0)
 
-	$Graphic7 = GUICtrlCreateGraphic(122, 140)
+	$Graphic7 = GUICtrlCreateGraphic(112, 140)
 	GUICtrlSetGraphic($Graphic7, $GUI_GR_DOT, 0, 0)
 
 	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 170, 130, 20, $SS_LEFT)
@@ -98,7 +98,6 @@ Func GUI_main()
 
 	GUISetState()
 
-	$HitLock = True
 
 	While 1
 		Switch GUIGetMsg()
@@ -117,15 +116,29 @@ Func GUI_main()
 					$Solution = Solution($Range, $Altitude, $iSpeed)
 					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], $iAzimuth_fix, $iAngle_fix)
 					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], $iAzimuth_fix, $iAngle_fix)
+
+					$oAltitude = StringFormat("%.1f", (_Degree(ATan($Altitude / $Range))))
+					If Not StringIsFloat($oAltitude) Then $oAltitude = "Ошибка"
+
+					$oSolution_0 = StringFormat("%.2f", $Solution_fix_0)
+					If Not StringIsFloat($oSolution_0) Then $oSolution_0 = "Ошибка"
+					$oTime_0 = Round(Time_to($Range, $iSpeed, $Solution[0]), 0)
+					If Not StringIsDigit($oTime_0) Then $oTime_0 = "Ошибка"
+
+					$oSolution_1 = StringFormat("%.2f", $Solution_fix_1)
+					If Not StringIsFloat($oSolution_1) Then $oSolution_1 = "Ошибка"
+					$oTime_1 = Round(Time_to($Range, $iSpeed, $Solution[1]), 0)
+					If Not StringIsDigit($oTime_1) Then $oTime_1 = "Ошибка"
+
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
-					GUICtrlSetData($Label_altitude, "Возвышение:   " & StringFormat("%.1f", (_Degree(ATan($Altitude / $Range)))))
+					GUICtrlSetData($Label_altitude, "Возвышение:   " & $oAltitude)
 					GUICtrlSetData($Label_azimut, "Азимут:            " & StringFormat("%.1f", $Azimuth))
 
-					GUICtrlSetData($Label_solution_0, "Навесная:        " & StringFormat("%.2f", $Solution_fix_0))
-					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[0]), 0))
+					GUICtrlSetData($Label_solution_0, "Навесная:        " & $oSolution_0)
+					GUICtrlSetData($Label_solution_0_ETA, "Время:             " & $oTime_0)
 
-					GUICtrlSetData($Label_solution_1, "Настильная:    " & StringFormat("%.2f", $Solution_fix_1))
-					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & Round(Time_to($Range, GUICtrlRead($Input5), $Solution[1]), 0))
+					GUICtrlSetData($Label_solution_1, "Настильная:    " & $oSolution_1)
+					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & $oTime_1)
 					If $HitCounter < 64 Then $HitLock = False
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат цели или позиции")
@@ -139,7 +152,7 @@ Func GUI_main()
 				GUICtrlSetState($hButton2, $GUI_DISABLE)
 				GUICtrlSetState($hButton10, $GUI_DISABLE)
 				GUICtrlSetState($hButton11, $GUI_DISABLE)
-				MsgBox(BitOR($MB_ICONINFORMATION, $MB_TOPMOST), "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
+				MsgBox(BitOR($MB_ICONINFORMATION, $MB_TOPMOST), "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.000 / 140.000 / 200.000 / --- / --- " & @CRLF & "155мм: 153.900 / 243.000 / 388.800 / 648.000 / 810.000 " & @CRLF & "230мм: 212.500 / 425.000 / 637.500 / 772.500 / --- ")
 				GUICtrlSetState($hButton1, $GUI_ENABLE)
 				GUICtrlSetState($hButton2, $GUI_ENABLE)
 				GUICtrlSetState($hButton10, $GUI_ENABLE)
@@ -196,7 +209,7 @@ Func GUI_position()
 	$Input3 = GUICtrlCreateInput("", 340, 10, 45, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Квадрат:", 280, 13, 50, 20, $SS_LEFT)
 
-	$Input4 = GUICtrlCreateInput("0", 200, 10, 45, 20, $ES_NUMBER)
+	$Input4 = GUICtrlCreateInput("", 200, 10, 45, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Высота:", 140, 13, 50, 20, $SS_LEFT)
 
 	$Graphic3 = GUICtrlCreateGraphic(90, 40)
@@ -302,11 +315,11 @@ Func GUI_angle()
 	$Input11 = GUICtrlCreateInput("", 340, 10, 45, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Квадрат:", 280, 13, 50, 20, $SS_LEFT)
 
-	$Input12 = GUICtrlCreateInput("0", 200, 10, 45, 20, $ES_NUMBER)
+	$Input12 = GUICtrlCreateInput("", 200, 10, 45, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Высота:", 140, 13, 50, 20, $SS_LEFT)
 
-	$Input13 = GUICtrlCreateInput("0", 120, 405, 45, 20, $ES_NUMBER)
-	$Input14 = GUICtrlCreateInput("00", 170, 405, 20, 20, $ES_NUMBER)
+	$Input13 = GUICtrlCreateInput("", 120, 405, 45, 20, $ES_NUMBER)
+	$Input14 = GUICtrlCreateInput("", 170, 405, 20, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("Угол:", 120, 385, 52, 20, $SS_LEFT)
 	$hButton8 = GUICtrlCreateButton("-", 100, 405, 20, 20)
 
@@ -337,8 +350,8 @@ Func GUI_angle()
 					If $Range_o_0 And $Range_o_1 And $Range_o_2 Then
 						$Fix_array = Geo_fix($Azimuth_o_0, $DAngle_o_0, $Azimuth_o_1, $DAngle_o_1, $Azimuth_o_2, $DAngle_o_2)
 						GUICtrlSetData($Label_fix, StringFormat("%.2f", $Fix_array[0]) & "@" & StringFormat("%.2f", $Fix_array[1]))
-						$Fix_array[0] = StringFormat("%.2f", $Fix_array[0])
-						$Fix_array[1] = StringFormat("%.2f", $Fix_array[1])
+						$Fix_array[0] = StringFormat("%.3f", $Fix_array[0])
+						$Fix_array[1] = StringFormat("%.3f", $Fix_array[1])
 						$Fix_azimuth = StringSplit($Fix_array[0], ".", $STR_NOCOUNT)
 						$Fix_angle = StringSplit($Fix_array[1], ".", $STR_NOCOUNT)
 						GUICtrlSetData($Input7, $Fix_azimuth[0])
@@ -475,12 +488,13 @@ EndFunc   ;==>Solution_fix
 Func Find_error()
 	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
 	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
-	Local $iter = 1, $fAzimuth = 180, $fAngle = 0.0625, $Solution_delta = 0, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
+	Local $iter = 1, $fAzimuth = 180, $fAngle = 0.0001, $Solution_delta, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
 	$fAzimuthStep = $cfg_fAzimuthStep
 	$precision_az = $cfg_precision_az
 	$fAngleStep = $cfg_fAngleStep
 	$precision_an = $cfg_precision_an
+	$Solution_delta = 0
 	For $i = 0 To $HitCounter - 1
 		$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
 	Next
@@ -550,14 +564,16 @@ Func Find_error()
 		$iter *= 2
 	Until $precision_az < 0.0001
 
-	$fAzimuth = StringFormat("%.2f", $fAzimuth)
-	$fAngle = StringFormat("%.2f", $fAngle)
+
+	$fAzimuth = StringFormat("%.3f", $fAzimuth)
+	$fAngle = StringFormat("%.3f", $fAngle)
 	$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
 	$fAngle_a = StringSplit($fAngle, ".", $STR_NOCOUNT)
 	GUICtrlSetData($Input7, $fAzimuth_a[0])
 	GUICtrlSetData($Input8, $fAzimuth_a[1])
 	GUICtrlSetData($Input9, $fAngle_a[0])
 	GUICtrlSetData($Input10, $fAngle_a[1])
+	MsgBox(BitOR($MB_ICONINFORMATION, $MB_TASKMODAL, $MB_TOPMOST), "Среднеквадратическое отклонение", "Градусы: " & StringFormat("%.3f", $Solution_delta))
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
