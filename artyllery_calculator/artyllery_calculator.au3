@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.1
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.2
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -452,7 +452,7 @@ Func Solution($Range, $Altitude, $Velocity)
 	Local $gx, $v2, $rt, $Solution[2]
 	$gx = $g * $Range
 	$v2 = $Velocity ^ 2
-	$rt = Sqrt($v2 ^ 2 - $g * ($gx ^ 2 + 2 * $Altitude * $v2))
+	$rt = Sqrt($v2 ^ 2 - $g * ($g * $Range ^ 2 + 2 * $Altitude * $v2))
 	$Solution[0] = _Degree(ATan(($v2 + $rt) / $gx))
 	$Solution[1] = _Degree(ATan(($v2 - $rt) / $gx))
 	Return $Solution
