@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.4
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.5
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -36,7 +36,7 @@
 #include <Math.au3>
 
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[64][3], $HitCounter = 0
+Global $HitArray[64][3], $HitCounter = 0, $Solution_delta
 
 GUI_main()
 
@@ -200,6 +200,7 @@ Func GUI_position()
 	$hButton4 = GUICtrlCreateButton("Угловая привязка", 100, 400, 100, 30)
 	$hButton12 = GUICtrlCreateButton("Сбросить массив", 205, 400, 100, 30)
 	$hButton13 = GUICtrlCreateButton("Коррекция", 310, 400, 80, 30)
+	$Label_error = GUICtrlCreateLabel("", 135, 381, 300, 20, $SS_LEFT)
 
 	$Slider3 = GUICtrlCreateSlider(78, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
 	GUICtrlSetLimit($Slider3, 100, 0)
@@ -223,6 +224,7 @@ Func GUI_position()
 	GUICtrlSetData($Slider3, $Square_pax)
 	GUICtrlSetData($Slider4, $Square_pay)
 	GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
+	GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
 
 	GUISetState()
 
@@ -282,6 +284,7 @@ Func GUI_position()
 						GUISetState(@SW_DISABLE, $hGUI_position)
 						Find_error()
 						GUISetState(@SW_ENABLE, $hGUI_position)
+						GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
 					EndIf
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно точек попаданий, минимально 3")
@@ -488,7 +491,7 @@ EndFunc   ;==>Solution_fix
 Func Find_error()
 	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
 	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
-	Local $iter = 1, $fAzimuth = 180, $fAngle = 0.0001, $Solution_delta, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
+	Local $iter = 1, $fAzimuth = 180, $fAngle = 0.0001, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
 	$fAzimuthStep = $cfg_fAzimuthStep
 	$precision_az = $cfg_precision_az
@@ -573,7 +576,6 @@ Func Find_error()
 	GUICtrlSetData($Input8, $fAzimuth_a[1])
 	GUICtrlSetData($Input9, $fAngle_a[0])
 	GUICtrlSetData($Input10, $fAngle_a[1])
-	MsgBox(BitOR($MB_ICONINFORMATION, $MB_TASKMODAL, $MB_TOPMOST), "Среднеквадратическое отклонение", "Градусы: " & StringFormat("%.3f", $Solution_delta))
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
