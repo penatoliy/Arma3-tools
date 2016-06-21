@@ -35,7 +35,7 @@
 #include <MsgBoxConstants.au3>
 #include <Math.au3>
 
-Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt = 0, $Input7, $Input8, $Input9, $Input10
+Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt, $Input7, $Input8, $Input9, $Input10
 Global $HitArray[64][3], $HitCounter = 0
 
 GUI_main()
