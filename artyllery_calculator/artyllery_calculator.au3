@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.0
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.1
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -151,7 +151,7 @@ Func GUI_main()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $hButton11
 				If $HitLock = False Then
-					If StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0]) Or $HitCounter > 63 Then
+					If StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0]) Then
 						$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
 						$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 						$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
@@ -166,11 +166,15 @@ Func GUI_main()
 						$HitCounter += 1
 						$HitLock = True
 					Else
-						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный выстрел или достигнут предел массива")
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный выстрел")
 						WinActivate($hGUI_main)
 					EndIf
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела")
+					If $HitCounter < 64 Then
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела")
+					Else
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Достигнут предел массива коррекции, максимум 64")
+					EndIf
 					WinActivate($hGUI_main)
 				EndIf
 		EndSwitch
@@ -581,3 +585,4 @@ EndFunc   ;==>Geo_fix
 Func GUI_tip()
 ;~ 	тут должна быть функция хранения скоростей снарядов
 EndFunc   ;==>GUI_tip
+
