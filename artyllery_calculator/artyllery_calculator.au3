@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.5
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.6
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -114,20 +114,19 @@ Func GUI_main()
 					$Input_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
 					$Altitude = GUICtrlRead($Input2) - $Input_aalt
 					$Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-					$Azimuth = Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+					If $Range = 0 Then
+						$Azimuth = ""
+						$oAzimuth = "Ошибка"
+					Else
+						$Azimuth = Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
+						$oAzimuth = StringFormat("%.1f", $Azimuth)
+					EndIf
 					$Solution = Solution($Range, $Altitude, $iSpeed)
 					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], $iAzimuth_fix, $iAngle_fix)
 					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], $iAzimuth_fix, $iAngle_fix)
 
 					$oAltitude = StringFormat("%.1f", (_Degree(ATan($Altitude / $Range))))
 					If Not StringIsFloat($oAltitude) Then $oAltitude = "Ошибка"
-
-					If $Range = 0 Then
-						$oAzimuth = "Ошибка"
-						$Azimuth = ""
-					Else
-						$oAzimuth = StringFormat("%.1f", $Azimuth)
-					EndIf
 
 					$oSolution_0 = StringFormat("%.2f", $Solution_fix_0)
 					If Not StringIsFloat($oSolution_0) Then $oSolution_0 = "Ошибка"
@@ -173,18 +172,25 @@ Func GUI_main()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $hButton11
 				If $HitLock = False Then
-					If StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0]) Then
-						$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
-						$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
-						$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
-						$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
-						$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
-						$tAltitude = GUICtrlRead($Input2) - $Input_aalt
-						$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
-						$tSolution = Solution($tRange, $tAltitude, $iSpeed)
-						$HitArray[$HitCounter][0] = $Azimuth
+					$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
+					$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
+					$tAltitude = GUICtrlRead($Input2) - $Input_aalt
+					$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
+					If $tRange = 0 Then
+						$tAzimuth = ""
+					Else
+						$tAzimuth = Azimuth_to($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
+					EndIf
+					$tSolution = Solution($tRange, $tAltitude, $iSpeed)
+
+					If (StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0])) And (StringIsFloat($tSolution[0]) Or StringIsDigit($tSolution[0])) Then
+						If $Range = 0 Then
+							$HitArray[$HitCounter][0] = $tAzimuth
+						Else
+							$HitArray[$HitCounter][0] = $Azimuth
+						EndIf
 						$HitArray[$HitCounter][1] = $Solution[0]
-						$HitArray[$HitCounter][2] = Solution_fix($Azimuth, $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
+						$HitArray[$HitCounter][2] = Solution_fix($HitArray[$HitCounter][0], $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
 						$HitCounter += 1
 						$HitLock = True
 					Else
