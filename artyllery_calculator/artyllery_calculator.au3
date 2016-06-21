@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.1.3
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.0
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -135,7 +135,15 @@ Func GUI_main()
 				GUISetState(@SW_DISABLE, $hGUI_main)
 				GUI_position()
 			Case $hButton10
+				GUICtrlSetState($hButton1, $GUI_DISABLE)
+				GUICtrlSetState($hButton2, $GUI_DISABLE)
+				GUICtrlSetState($hButton10, $GUI_DISABLE)
+				GUICtrlSetState($hButton11, $GUI_DISABLE)
 				MsgBox(BitOR($MB_ICONINFORMATION, $MB_TOPMOST), "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.0 / 140.0 / 200.0 / --- / --- " & @CRLF & "155мм: 153.9 / 243.0 / 388.8 / 648.0 / 810.0 " & @CRLF & "230мм: 212.5 / 425.0 / 637.5 / 772.5 / --- ")
+				GUICtrlSetState($hButton1, $GUI_ENABLE)
+				GUICtrlSetState($hButton2, $GUI_ENABLE)
+				GUICtrlSetState($hButton10, $GUI_ENABLE)
+				GUICtrlSetState($hButton11, $GUI_ENABLE)
 				WinActivate($hGUI_main)
 			Case $Slider1
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
@@ -143,21 +151,26 @@ Func GUI_main()
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $hButton11
 				If $HitLock = False Then
-					$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
-					$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
-					$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
-					$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
-					$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
-					$tAltitude = GUICtrlRead($Input2) - $Input_aalt
-					$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
-					$tSolution = Solution($tRange, $tAltitude, $iSpeed)
-					$HitArray[$HitCounter][0] = $Azimuth
-					$HitArray[$HitCounter][1] = $Solution[0]
-					$HitArray[$HitCounter][2] = Solution_fix($Azimuth, $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
-					$HitCounter += 1
-					$HitLock = True
+					If StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0]) Or $HitCounter > 63 Then
+						$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
+						$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
+						$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
+						$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
+						$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
+						$tAltitude = GUICtrlRead($Input2) - $Input_aalt
+						$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
+						$tSolution = Solution($tRange, $tAltitude, $iSpeed)
+						$HitArray[$HitCounter][0] = $Azimuth
+						$HitArray[$HitCounter][1] = $Solution[0]
+						$HitArray[$HitCounter][2] = Solution_fix($Azimuth, $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
+						$HitCounter += 1
+						$HitLock = True
+					Else
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный выстрел или достигнут предел массива")
+						WinActivate($hGUI_main)
+					EndIf
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела или досигнут предел памяти попаданий")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела")
 					WinActivate($hGUI_main)
 				EndIf
 		EndSwitch
@@ -410,19 +423,20 @@ Func Time_to($Range, $Velocity, $Solution)
 EndFunc   ;==>Time_to
 
 Func Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
-	Local $Azimuth_to
+	Local $Input_dx, $Input_dy, $Azimuth_to
 	$Input_dx = $Input_tx - $Input_ax
 	$Input_dy = $Input_ty - $Input_ay
+	$Azimuth_to = _Degree(ATan($Input_dy / $Input_dx))
 	If $Input_dx > 0 Then
-		$Azimuth_to = 90 - _Degree(ATan($Input_dy / $Input_dx))
+		$Azimuth_to = 90 - $Azimuth_to
 	Else
 		If $Input_dx < 0 Then
-			$Azimuth_to = 270 - _Degree(ATan($Input_dy / $Input_dx))
+			$Azimuth_to = 270 - $Azimuth_to
 		Else
 			If $Input_dy > 0 Then
 				$Azimuth_to = 0
 			Else
-				If $Input_dy < 0 Then $Azimuth_to = 180
+				$Azimuth_to = 180
 			EndIf
 		EndIf
 	EndIf
@@ -430,11 +444,11 @@ Func Azimuth_to($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 EndFunc   ;==>Azimuth_to
 
 Func Solution($Range, $Altitude, $Velocity)
-	Local $Solution[2]
-	Const $g = 9.80665
-	Local $gx = $g * $Range
-	Local $v2 = $Velocity ^ 2
-	Local $rt = Sqrt($v2 ^ 2 - $g * ($gx ^ 2 + 2 * $Altitude * $v2))
+	Local Const $g = 9.80665
+	Local $gx, $v2, $rt, $Solution[2]
+	$gx = $g * $Range
+	$v2 = $Velocity ^ 2
+	$rt = Sqrt($v2 ^ 2 - $g * ($gx ^ 2 + 2 * $Altitude * $v2))
 	$Solution[0] = _Degree(ATan(($v2 + $rt) / $gx))
 	$Solution[1] = _Degree(ATan(($v2 - $rt) / $gx))
 	Return $Solution
@@ -442,95 +456,96 @@ EndFunc   ;==>Solution
 
 
 Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
-	Local $Solution, $Azimuth
+	Local $Azimuth, $Solution
 	$Azimuth = $Azimuth_to - $Azimuth_fix
 	Select
 		Case $Azimuth > 180
-			$Azimuth = $Azimuth - 360
+			$Azimuth -= 360
 		Case $Azimuth < -180
-			$Azimuth = $Azimuth + 360
+			$Azimuth += 360
 	EndSelect
 	$Solution = $Solution_to + (-Abs($Azimuth) / 90 + 1) * $Angle_fix
 	Return $Solution
 EndFunc   ;==>Solution_fix
 
 Func Find_error()
-	Local $fAngle_a[2]
-	Local $fAzimuth_a[2]
-	Local $Solution_delta
-	Local $Solution_delta_old = 90
-	Local $fAzimuth = 180
-	Local $fAzimuthStep = 8
-	Local $fAngle = 0.0001
-	Local $fAngleStep = 0.5
-	Local $fUp_az = True
-	Local $fUp_an = True
-	Local $precision_az = 32
-	Local $precision_an = 2
-
-	While $precision_az > 0.0001 And $precision_an > 0.0001
-		While $fAzimuthStep > $precision_az
-			If $fAzimuth < 0 Then
-				$fAzimuth += 360
-			EndIf
-			If $fAzimuth > 360 Then
-				$fAzimuth -= 360
-			EndIf
-			$Solution_delta = 0
-			For $i = 0 To $HitCounter - 1
-				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-			Next
-			$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-			If $Solution_delta_old > $Solution_delta Then
+	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
+	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
+	Local $iter = 1, $fAzimuth = 180, $fAngle = 0.0625, $Solution_delta = 0, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
+	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
+	$fAzimuthStep = $cfg_fAzimuthStep
+	$precision_az = $cfg_precision_az
+	$fAngleStep = $cfg_fAngleStep
+	$precision_an = $cfg_precision_an
+	For $i = 0 To $HitCounter - 1
+		$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+	Next
+	$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+	Do
+		Do
+			Do
+				$Solution_delta_old = $Solution_delta
 				If $fUp_az = True Then
 					$fAzimuth += $fAzimuthStep
 				Else
 					$fAzimuth -= $fAzimuthStep
 				EndIf
-			Else
-				$fAzimuthStep /= 2
-				If $fUp_az = True Then
-					$fAzimuth -= $fAzimuthStep
-					$fUp_az = False
-				Else
-					$fAzimuth += $fAzimuthStep
-					$fUp_az = True
+				If $fAzimuth < 0 Then
+					$fAzimuth += 360
 				EndIf
+				If $fAzimuth >= 360 Then
+					$fAzimuth -= 360
+				EndIf
+				$Solution_delta = 0
+				For $i = 0 To $HitCounter - 1
+					$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+				Next
+				$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+			Until $Solution_delta >= $Solution_delta_old
+			$fAzimuthStep /= 2
+			If $fUp_az = True Then
+				$fUp_az = False
+			Else
+				$fUp_az = True
 			EndIf
-			$Solution_delta_old = $Solution_delta
-		WEnd
-		$precision_az /= 2
-		While $fAngleStep > $precision_an
-			If $fAngle <= 0 Then
-				$fUp_an = True
-				$fAngle = 90
-				$precision_az *= 2
-			EndIf
-			$Solution_delta = 0
-			For $i = 0 To $HitCounter - 1
-				$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-			Next
-			$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-			If $Solution_delta_old > $Solution_delta Then
+		Until $fAzimuthStep < $precision_az
+		Do
+			Do
+				$Solution_delta_old = $Solution_delta
 				If $fUp_an = True Then
 					$fAngle += $fAngleStep
 				Else
 					$fAngle -= $fAngleStep
 				EndIf
-			Else
-				$fAngleStep /= 2
-				If $fUp_an = True Then
-					$fAngle -= $fAngleStep
-					$fUp_an = False
-				Else
-					$fAngle += $fAngleStep
+				If $fAngle < 0 Then
+					$fAngle *= -1
 					$fUp_an = True
+					If $fAzimuth > 180 Then
+						$fAzimuth -= 180
+					Else
+						$fAzimuth += 180
+					EndIf
 				EndIf
+				$Solution_delta = 0
+				For $i = 0 To $HitCounter - 1
+					$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+				Next
+				$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+			Until $Solution_delta >= $Solution_delta_old
+			$fAngleStep /= 2
+			If $fUp_an = True Then
+				$fUp_an = False
+			Else
+				$fUp_an = True
 			EndIf
-			$Solution_delta_old = $Solution_delta
-		WEnd
-		$precision_an /= 2
-	WEnd
+		Until $fAngleStep < $precision_an
+		$fAzimuthStep = $cfg_fAzimuthStep / $iter
+		$precision_az = $cfg_precision_az / $iter
+		$fAngleStep = $cfg_fAngleStep / $iter
+		$precision_an = $cfg_precision_an / $iter
+		$iter *= 2
+	Until $precision_az < 0.0001
+
 	$fAzimuth = StringFormat("%.2f", $fAzimuth)
 	$fAngle = StringFormat("%.2f", $fAngle)
 	$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
@@ -542,7 +557,7 @@ Func Find_error()
 EndFunc   ;==>Find_error
 
 Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
-	Local $Solution[2]
+	Local $Dot_x_0, $Dot_y_0, $Dot_x_1, $Dot_y_1, $Dot_x_2, $Dot_y_2, $A, $B, $C, $D, $E, $F, $g, $Cx, $Cy, $Solution[2]
 	$Dot_x_0 = ($Dot_rg_0 + 100) * Cos(_Radian($Dot_az_0))
 	$Dot_y_0 = ($Dot_rg_0 + 100) * Sin(_Radian($Dot_az_0))
 	$Dot_x_1 = ($Dot_rg_1 + 100) * Cos(_Radian($Dot_az_1))
@@ -558,10 +573,8 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$g = 2 * ($A * ($Dot_y_2 - $Dot_y_1) - $B * ($Dot_x_2 - $Dot_x_1))
 	$Cx = ($D * $E - $B * $F) / $g
 	$Cy = ($A * $F - $C * $E) / $g
-	$Corr_rg = Sqrt($Cx ^ 2 + $Cy ^ 2)
-	$Corr_az = _Degree(ACos($Cx / ($Corr_rg)))
-	$Solution[0] = $Corr_az
-	$Solution[1] = $Corr_rg
+	$Solution[1] = Sqrt($Cx ^ 2 + $Cy ^ 2)
+	$Solution[0] = _Degree(ACos($Cx / ($Solution[1])))
 	Return $Solution
 EndFunc   ;==>Geo_fix
 
