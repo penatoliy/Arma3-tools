@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.8
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.9
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -610,7 +610,7 @@ Func Find_error()
 		$fAngleStep = $cfg_fAngleStep / $iter
 		$precision_an = $cfg_precision_an / $iter
 		$iter *= 2
-	Until $precision_az < 0.0001
+	Until $precision_az < 0.000001
 
 	$fAzimuth = StringFormat("%.3f", $fAzimuth)
 	$fAngle = StringFormat("%.3f", $fAngle)
