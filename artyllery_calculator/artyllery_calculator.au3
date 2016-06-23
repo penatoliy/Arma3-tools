@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.9
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.10
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -110,9 +110,14 @@ Func GUI_main()
 					$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
 					$iAngle_fix = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 					$iSpeed = GUICtrlRead($Input5) & "." & GUICtrlRead($Input6)
-					$Input_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
-					$Input_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
-					$Altitude = GUICtrlRead($Input2) - $Input_aalt
+					$Square_tx = StringLeft(GUICtrlRead($Input1), 3)
+					$Square_ty = StringRight(GUICtrlRead($Input1), 3)
+					$Square_ptx = GUICtrlRead($Slider1)
+					$Square_pty = GUICtrlRead($Slider2)
+					$Input_tx = ($Square_tx * 100) + ($Square_ptx)
+					$Input_ty = ($Square_ty * 100) + ($Square_pty * -1)
+					$Input_talt = GUICtrlRead($Input2)
+					$Altitude = $Input_talt - $Input_aalt
 					$Range = Range_finder($Input_ax, $Input_ay, $Input_tx, $Input_ty)
 					If $Range = 0 Then
 						$Azimuth = ""
@@ -193,6 +198,11 @@ Func GUI_main()
 						$HitArray[$HitCounter][2] = Solution_fix($HitArray[$HitCounter][0], $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
 						$HitCounter += 1
 						$HitLock = True
+						GUICtrlSetData($Input1, $Square_tx & $Square_ty)
+						GUICtrlSetData($Input2, $Input_talt)
+						GUICtrlSetData($Slider1, $Square_ptx)
+						GUICtrlSetData($Slider2, $Square_pty)
+						GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 					Else
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный выстрел")
 					EndIf
