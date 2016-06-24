@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.10
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.11
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -311,7 +311,7 @@ Func GUI_position()
 				EndIf
 				WinActivate($hGUI_position)
 			Case $hButton13
-				If $HitCounter > 2 Then
+				If $HitCounter > 0 Then
 					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Рассчитать и внести коррекцию?")
 					If $mbresult = 6 Then
 						GUISetState(@SW_DISABLE, $hGUI_position)
@@ -320,7 +320,7 @@ Func GUI_position()
 						GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
 					EndIf
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно точек попаданий, минимально 3")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Не введено ни одной точки попаданий")
 				EndIf
 				WinActivate($hGUI_position)
 		EndSwitch
