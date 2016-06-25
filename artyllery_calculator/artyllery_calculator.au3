@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.11
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.12
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -37,7 +37,7 @@
 
 Global Const $g = 9.80665
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[64][3], $HitCounter = 0, $Solution_delta
+Global $HitArray[64][3], $HitCounter = 0, $Solution_delta, $iAzimuth_fix, $iAngle_fix
 
 GUI_main()
 
@@ -546,45 +546,32 @@ EndFunc   ;==>Solution_fix
 Func Find_error()
 	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
 	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
-	Local $iter = 1, $fAzimuth = 180, $fAngle = 0.0001, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
+	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
 	$fAzimuthStep = $cfg_fAzimuthStep
 	$precision_az = $cfg_precision_az
 	$fAngleStep = $cfg_fAngleStep
 	$precision_an = $cfg_precision_an
-	$Solution_delta = 0
-	For $i = 0 To $HitCounter - 1
-		$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-	Next
-	$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-	Do
-		Do
-			Do
-				$Solution_delta_old = $Solution_delta
-				If $fUp_az = True Then
-					$fAzimuth += $fAzimuthStep
-				Else
-					$fAzimuth -= $fAzimuthStep
-				EndIf
-				If $fAzimuth < 0 Then
-					$fAzimuth += 360
-				EndIf
-				If $fAzimuth >= 360 Then
-					$fAzimuth -= 360
-				EndIf
-				$Solution_delta = 0
-				For $i = 0 To $HitCounter - 1
-					$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-				Next
-				$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-			Until $Solution_delta >= $Solution_delta_old
-			$fAzimuthStep /= 2
-			If $fUp_az = True Then
-				$fUp_az = False
+	If $HitCounter = 1 Then
+		If $iAzimuth_fix = "." Then
+			If $HitArray[0][1] > $HitArray[0][2] Then
+				$fAzimuth = $HitArray[0][0]
 			Else
-				$fUp_az = True
+				$fAzimuth = $HitArray[0][0] * -1
 			EndIf
-		Until $fAzimuthStep < $precision_az
+		Else
+			$fAzimuth = $iAzimuth_fix
+		EndIf
+		If $iAngle_fix = "." Then
+			$fAngle = 0.125
+		Else
+			$fAngle = $iAngle_fix
+		EndIf
+		$Solution_delta = 0
+		For $i = 0 To $HitCounter - 1
+			$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+		Next
+		$Solution_delta = Sqrt($Solution_delta / $HitCounter)
 		Do
 			Do
 				$Solution_delta_old = $Solution_delta
@@ -614,14 +601,88 @@ Func Find_error()
 			Else
 				$fUp_an = True
 			EndIf
-		Until $fAngleStep < $precision_an
-		$fAzimuthStep = $cfg_fAzimuthStep / $iter
-		$precision_az = $cfg_precision_az / $iter
-		$fAngleStep = $cfg_fAngleStep / $iter
-		$precision_an = $cfg_precision_an / $iter
-		$iter *= 2
-	Until $precision_az < 0.000001
-
+		Until $fAngleStep < 0.000001
+	Else
+		If $iAzimuth_fix = "." Then
+			$fAzimuth = 180
+		Else
+			$fAzimuth = $iAzimuth_fix
+		EndIf
+		If $iAngle_fix = "." Then
+			$fAngle = 0.125
+		Else
+			$fAngle = $iAngle_fix
+		EndIf
+		$Solution_delta = 0
+		For $i = 0 To $HitCounter - 1
+			$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+		Next
+		$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+		Do
+			Do
+				Do
+					$Solution_delta_old = $Solution_delta
+					If $fUp_az = True Then
+						$fAzimuth += $fAzimuthStep
+					Else
+						$fAzimuth -= $fAzimuthStep
+					EndIf
+					If $fAzimuth < 0 Then
+						$fAzimuth += 360
+					EndIf
+					If $fAzimuth >= 360 Then
+						$fAzimuth -= 360
+					EndIf
+					$Solution_delta = 0
+					For $i = 0 To $HitCounter - 1
+						$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+					Next
+					$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+				Until $Solution_delta >= $Solution_delta_old
+				$fAzimuthStep /= 2
+				If $fUp_az = True Then
+					$fUp_az = False
+				Else
+					$fUp_az = True
+				EndIf
+			Until $fAzimuthStep < $precision_az
+			Do
+				Do
+					$Solution_delta_old = $Solution_delta
+					If $fUp_an = True Then
+						$fAngle += $fAngleStep
+					Else
+						$fAngle -= $fAngleStep
+					EndIf
+					If $fAngle < 0 Then
+						$fAngle *= -1
+						$fUp_an = True
+						If $fAzimuth > 180 Then
+							$fAzimuth -= 180
+						Else
+							$fAzimuth += 180
+						EndIf
+					EndIf
+					$Solution_delta = 0
+					For $i = 0 To $HitCounter - 1
+						$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
+					Next
+					$Solution_delta = Sqrt($Solution_delta / $HitCounter)
+				Until $Solution_delta >= $Solution_delta_old
+				$fAngleStep /= 2
+				If $fUp_an = True Then
+					$fUp_an = False
+				Else
+					$fUp_an = True
+				EndIf
+			Until $fAngleStep < $precision_an
+			$fAzimuthStep = $cfg_fAzimuthStep / $iter
+			$precision_az = $cfg_precision_az / $iter
+			$fAngleStep = $cfg_fAngleStep / $iter
+			$precision_an = $cfg_precision_an / $iter
+			$iter *= 2
+		Until $precision_az < 0.000001
+	EndIf
 	$fAzimuth = StringFormat("%.3f", $fAzimuth)
 	$fAngle = StringFormat("%.3f", $fAngle)
 	$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
