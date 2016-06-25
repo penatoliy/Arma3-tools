@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.13
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.14
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -557,7 +557,11 @@ Func Find_error()
 			If $HitArray[0][1] > $HitArray[0][2] Then
 				$fAzimuth = $HitArray[0][0]
 			Else
-				$fAzimuth = $HitArray[0][0] * -1
+				If $HitArray[0][0] < 180 Then
+					$fAzimuth = $HitArray[0][0] + 180
+				Else
+					$fAzimuth = $HitArray[0][0] - 180
+				EndIf
 			EndIf
 		Else
 			$fAzimuth = $iAzimuth_fix
