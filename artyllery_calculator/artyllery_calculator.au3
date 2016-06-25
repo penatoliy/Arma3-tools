@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.12
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.13
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -583,10 +583,10 @@ Func Find_error()
 				If $fAngle < 0 Then
 					$fAngle *= -1
 					$fUp_an = True
-					If $fAzimuth > 180 Then
-						$fAzimuth -= 180
-					Else
+					If $fAzimuth < 180 Then
 						$fAzimuth += 180
+					Else
+						$fAzimuth -= 180
 					EndIf
 				EndIf
 				$Solution_delta = 0
@@ -627,12 +627,12 @@ Func Find_error()
 					Else
 						$fAzimuth -= $fAzimuthStep
 					EndIf
-					If $fAzimuth < 0 Then
-						$fAzimuth += 360
-					EndIf
-					If $fAzimuth >= 360 Then
-						$fAzimuth -= 360
-					EndIf
+					Select
+						Case $fAzimuth < 0
+							$fAzimuth += 360
+						Case $fAzimuth >= 360
+							$fAzimuth -= 360
+					EndSelect
 					$Solution_delta = 0
 					For $i = 0 To $HitCounter - 1
 						$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
@@ -712,6 +712,12 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	$Cy = ($fA * $fF - $fC * $fE) / $fX
 	$Solution[1] = Sqrt($Cx ^ 2 + $Cy ^ 2)
 	$Solution[0] = _Degree(ASin($Cy / ($Solution[1])))
+	Select
+		Case $Solution[0] < 0
+			$Solution[0] += 360
+		Case $Solution[0] >= 360
+			$Solution[0] -= 360
+	EndSelect
 	Return $Solution
 EndFunc   ;==>Geo_fix
 
