@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.14
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.15
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -37,7 +37,7 @@
 
 Global Const $g = 9.80665
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt, $Input7, $Input8, $Input9, $Input10
-Global $HitArray[64][3], $HitCounter = 0, $Solution_delta, $iAzimuth_fix, $iAngle_fix
+Global $HitArray[64][3], $HitCounter = 0, $Solution_delta, $iAzimuth_fix, $iAngle_fix, $LockPos = 4
 
 GUI_main()
 
@@ -165,11 +165,27 @@ Func GUI_main()
 				GUICtrlSetState($hButton2, $GUI_DISABLE)
 				GUICtrlSetState($hButton10, $GUI_DISABLE)
 				GUICtrlSetState($hButton11, $GUI_DISABLE)
+				GUICtrlSetState($Slider1, $GUI_DISABLE)
+				GUICtrlSetState($Slider2, $GUI_DISABLE)
+				GUICtrlSetState($Input1, $GUI_DISABLE)
+				GUICtrlSetState($Input2, $GUI_DISABLE)
+				GUICtrlSetState($Input7, $GUI_DISABLE)
+				GUICtrlSetState($Input8, $GUI_DISABLE)
+				GUICtrlSetState($Input9, $GUI_DISABLE)
+				GUICtrlSetState($Input10, $GUI_DISABLE)
 				MsgBox(BitOR($MB_ICONINFORMATION, $MB_TOPMOST), "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.000 / 140.000 / 200.000 / --- / --- " & @CRLF & "155мм: 153.900 / 243.000 / 388.800 / 648.000 / 810.000 " & @CRLF & "230мм: 212.500 / 425.000 / 637.500 / 772.500 / --- ")
 				GUICtrlSetState($hButton1, $GUI_ENABLE)
 				GUICtrlSetState($hButton2, $GUI_ENABLE)
 				GUICtrlSetState($hButton10, $GUI_ENABLE)
 				GUICtrlSetState($hButton11, $GUI_ENABLE)
+				GUICtrlSetState($Slider1, $GUI_ENABLE)
+				GUICtrlSetState($Slider2, $GUI_ENABLE)
+				GUICtrlSetState($Input1, $GUI_ENABLE)
+				GUICtrlSetState($Input2, $GUI_ENABLE)
+				GUICtrlSetState($Input7, $GUI_ENABLE)
+				GUICtrlSetState($Input8, $GUI_ENABLE)
+				GUICtrlSetState($Input9, $GUI_ENABLE)
+				GUICtrlSetState($Input10, $GUI_ENABLE)
 				WinActivate($hGUI_main)
 			Case $Slider1
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
@@ -224,6 +240,7 @@ Func GUI_position()
 	$hButton4 = GUICtrlCreateButton("Угловая привязка", 100, 400, 100, 30)
 	$hButton12 = GUICtrlCreateButton("Сбросить массив", 205, 400, 100, 30)
 	$hButton13 = GUICtrlCreateButton("Коррекция", 310, 400, 80, 30)
+	$hLockPos = GUICtrlCreateCheckbox("Блок.", 10, 380, 60, 20)
 	$Label_error = GUICtrlCreateLabel("", 135, 381, 300, 20, $SS_LEFT)
 
 	$Slider3 = GUICtrlCreateSlider(78, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
@@ -255,6 +272,29 @@ Func GUI_position()
 		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
 	EndIf
 
+	If $LockPos = 1 Then
+		GUICtrlSetState($Slider3, $GUI_DISABLE)
+		GUICtrlSetState($Slider4, $GUI_DISABLE)
+		GUICtrlSetState($Input3, $GUI_DISABLE)
+		GUICtrlSetState($Input4, $GUI_DISABLE)
+		GUICtrlSetState($hButton3, $GUI_DISABLE)
+		GUICtrlSetState($hLockPos, $LockPos)
+	Else
+		GUICtrlSetState($Slider3, $GUI_ENABLE)
+		GUICtrlSetState($Slider4, $GUI_ENABLE)
+		GUICtrlSetState($Input3, $GUI_ENABLE)
+		GUICtrlSetState($Input4, $GUI_ENABLE)
+		GUICtrlSetState($Input4, $GUI_ENABLE)
+		GUICtrlSetState($hButton3, $GUI_ENABLE)
+		GUICtrlSetState($hLockPos, $LockPos)
+	EndIf
+
+	If $HitCounter >= 3 Then
+		GUICtrlSetState($hButton4, $GUI_DISABLE)
+	Else
+		GUICtrlSetState($hButton4, $GUI_ENABLE)
+	EndIf
+
 	GUISetState()
 
 	While 1
@@ -274,11 +314,6 @@ Func GUI_position()
 					$Input_aalt = GUICtrlRead($Input4)
 					$Input_ax = ($Square_ax * 100) + ($Square_pax)
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
-					GUISetState(@SW_DISABLE, $hGUI_position)
-					GUISetState(@SW_ENABLE, $hGUI_main)
-					WinActivate($hGUI_main)
-					GUIDelete($hGUI_position)
-					ExitLoop
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции")
 					WinActivate($hGUI_position)
@@ -308,6 +343,7 @@ Func GUI_position()
 					$HitCounter = 0
 					$Solution_delta = ""
 					GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
+					GUICtrlSetState($hButton4, $GUI_ENABLE)
 				EndIf
 				WinActivate($hGUI_position)
 			Case $hButton13
@@ -323,6 +359,22 @@ Func GUI_position()
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Не введено ни одной точки попаданий")
 				EndIf
 				WinActivate($hGUI_position)
+			Case $hLockPos
+				$LockPos = GUICtrlRead($hLockPos)
+				If $LockPos = 1 Then
+					GUICtrlSetState($Slider3, $GUI_DISABLE)
+					GUICtrlSetState($Slider4, $GUI_DISABLE)
+					GUICtrlSetState($Input3, $GUI_DISABLE)
+					GUICtrlSetState($Input4, $GUI_DISABLE)
+					GUICtrlSetState($hButton3, $GUI_DISABLE)
+				Else
+					GUICtrlSetState($Slider3, $GUI_ENABLE)
+					GUICtrlSetState($Slider4, $GUI_ENABLE)
+					GUICtrlSetState($Input3, $GUI_ENABLE)
+					GUICtrlSetState($Input4, $GUI_ENABLE)
+					GUICtrlSetState($Input4, $GUI_ENABLE)
+					GUICtrlSetState($hButton3, $GUI_ENABLE)
+				EndIf
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_position
@@ -724,4 +776,6 @@ Func Geo_fix($Dot_az_0, $Dot_rg_0, $Dot_az_1, $Dot_rg_1, $Dot_az_2, $Dot_rg_2)
 	EndSelect
 	Return $Solution
 EndFunc   ;==>Geo_fix
+
+
 
