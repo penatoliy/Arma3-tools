@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.2.2.15
+#AutoIt3Wrapper_Res_Fileversion=1.2.2.16
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -88,7 +88,7 @@ Func GUI_main()
 	GUICtrlSetGraphic($Graphic7, $GUI_GR_DOT, 0, 0)
 
 	$Label_range = GUICtrlCreateLabel("Дальность:", 10, 170, 130, 20, $SS_LEFT)
-	$Label_altitude = GUICtrlCreateLabel("Возвышение:", 10, 190, 130, 20, $SS_LEFT)
+	$Label_altitude = GUICtrlCreateLabel("Угломер:", 10, 190, 130, 20, $SS_LEFT)
 	$Label_azimut = GUICtrlCreateLabel("Азимут:", 10, 210, 120, 20, $SS_LEFT)
 
 	$Label_solution_0 = GUICtrlCreateLabel("Навесная:", 10, 240, 130, 20, $SS_LEFT)
@@ -130,8 +130,8 @@ Func GUI_main()
 					$Solution_fix_0 = Solution_fix($Azimuth, $Solution[0], $iAzimuth_fix, $iAngle_fix)
 					$Solution_fix_1 = Solution_fix($Azimuth, $Solution[1], $iAzimuth_fix, $iAngle_fix)
 
-					$oAltitude = StringFormat("%.1f", (_Degree(ATan($Altitude / $Range))))
-					If Not StringIsFloat($oAltitude) Then $oAltitude = "Ошибка"
+					$oAltitude = StringFormat("%.1f", Solution_fix($Azimuth, _Degree(ATan($Altitude / $Range)), $iAzimuth_fix, $iAngle_fix))
+					If Not StringIsFloat($oAltitude) Or $oAltitude > 90 Or $oAltitude < -90 Then $oAltitude = "Ошибка"
 
 					$oSolution_0 = StringFormat("%.2f", $Solution_fix_0)
 					If Not StringIsFloat($oSolution_0) Then $oSolution_0 = "Ошибка"
@@ -144,7 +144,7 @@ Func GUI_main()
 					If Not StringIsDigit($oTime_1) Then $oTime_1 = "Ошибка"
 
 					GUICtrlSetData($Label_range, "Дальность:      " & Round($Range, 0))
-					GUICtrlSetData($Label_altitude, "Возвышение:   " & $oAltitude)
+					GUICtrlSetData($Label_altitude, "Угломер:          " & $oAltitude)
 					GUICtrlSetData($Label_azimut, "Азимут:            " & $oAzimuth)
 
 					GUICtrlSetData($Label_solution_0, "Навесная:        " & $oSolution_0)
@@ -592,6 +592,13 @@ Func Solution_fix($Azimuth_to, $Solution_to, $Azimuth_fix, $Angle_fix)
 			$Azimuth += 360
 	EndSelect
 	$Solution = $Solution_to + (-Abs($Azimuth) / 90 + 1) * $Angle_fix
+	Select
+		Case $Azimuth > 90
+			$Azimuth -= 180
+		Case $Azimuth < -90
+			$Azimuth += 180
+	EndSelect
+	$Solution = $Solution / Cos(_Radian(Abs($Azimuth) / 90 * $Angle_fix))
 	Return $Solution
 EndFunc   ;==>Solution_fix
 
