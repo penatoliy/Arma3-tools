@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.5.0.2
+#AutoIt3Wrapper_Res_Fileversion=1.5.0.4
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -536,6 +536,14 @@ Func GUI_angle()
 										$fAzimuth -= 180
 									EndIf
 								EndIf
+								If $fAngle >= 90 Then
+									$fAngle -= 90
+									If $fAzimuth < 180 Then
+										$fAzimuth += 180
+									Else
+										$fAzimuth -= 180
+									EndIf
+								EndIf
 								$Solution_delta = 0
 								For $i = 0 To $Angle_counter - 1
 									$Solution_delta += ($Angle_array[$i][2] - Elevation($Angle_array[$i][0], $Angle_array[$i][1], $fAzimuth, $fAngle)) ^ 2
@@ -557,15 +565,15 @@ Func GUI_angle()
 					Until $precision_az < 0.00001
 					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3))
 					If $mbresult = 6 Then
-						$iAzimuth_fix = $fAzimuth
-						$iAngle_fix = $fAngle
+						$iAzimuth_fix = Round($fAzimuth, 3)
+						$iAngle_fix = Round($fAzimuth, 3)
 						If StringIsFloat($iAzimuth_fix) Then
 							$for_iAz = StringSplit($iAzimuth_fix, ".")
 							GUICtrlSetData($Input7, $for_iAz[1])
 							GUICtrlSetData($Input8, $for_iAz[2])
 						Else
 							GUICtrlSetData($Input7, $iAzimuth_fix)
-							GUICtrlSetData($Input8, "000")
+							GUICtrlSetData($Input8, "")
 						EndIf
 						If StringIsFloat($iAngle_fix) Then
 							$for_iAn = StringSplit($iAngle_fix, ".")
@@ -573,7 +581,7 @@ Func GUI_angle()
 							GUICtrlSetData($Input10, $for_iAn[2])
 						Else
 							GUICtrlSetData($Input9, $iAngle_fix)
-							GUICtrlSetData($Input10, "000")
+							GUICtrlSetData($Input10, "")
 						EndIf
 					EndIf
 					WinActivate($hGUI_angle)
