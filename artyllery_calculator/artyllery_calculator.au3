@@ -566,7 +566,7 @@ Func GUI_angle()
 					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3))
 					If $mbresult = 6 Then
 						$iAzimuth_fix = Round($fAzimuth, 3)
-						$iAngle_fix = Round($fAzimuth, 3)
+						$iAngle_fix = Round($fAngle, 3)
 						If StringIsFloat($iAzimuth_fix) Then
 							$for_iAz = StringSplit($iAzimuth_fix, ".")
 							GUICtrlSetData($Input7, $for_iAz[1])
