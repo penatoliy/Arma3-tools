@@ -362,6 +362,8 @@ Func GUI_position()
 					$Input_aalt = GUICtrlRead($Input4)
 					$Input_ax = ($Square_ax * 100) + ($Square_pax)
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
+					$Plat_h = GUICtrlRead($Input15) / 100
+					$Plat_l = GUICtrlRead($Input16) / 100
 					GUISetState(@SW_DISABLE, $hGUI_position)
 					GUI_angle()
 				Else
