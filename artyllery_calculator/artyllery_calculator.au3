@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.5.0.4
+#AutoIt3Wrapper_Res_Fileversion=1.5.0.5
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -427,8 +427,9 @@ EndFunc   ;==>GUI_position
 Func GUI_angle()
 	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
 	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
-	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az, $fUp_an, $fAngle_a[2], $fAzimuth_a[2]
+	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az, $fUp_an, $fAngle_a[2], $fAzimuth_a[2], $Old_square
 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
+
 	$Angle_counter = 0
 
 	$hGUI_angle = GUICreate("Коррекция по углам", 400, 440)
@@ -592,7 +593,7 @@ Func GUI_angle()
 					WinActivate($hGUI_angle)
 				EndIf
 			Case $hButton6
-				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_counter < 64 Then
+				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_counter < 64 And GUICtrlRead($Input11) <> $Old_square Then
 					$aSquare_x = StringLeft(GUICtrlRead($Input11), 3)
 					$aSquare_y = StringRight(GUICtrlRead($Input11), 3)
 					$aSquare_px = GUICtrlRead($Slider5)
@@ -606,6 +607,7 @@ Func GUI_angle()
 					$Angle_array[$Angle_counter][0] = $aAzimuth
 					$Angle_array[$Angle_counter][1] = $aElevation
 					$Angle_array[$Angle_counter][2] = GUICtrlRead($Input13) & "." & GUICtrlRead($Input14)
+					$Old_square = GUICtrlRead($Input11)
 					$Angle_counter += 1
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
