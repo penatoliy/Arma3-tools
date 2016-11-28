@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.5.0.5
+#AutoIt3Wrapper_Res_Fileversion=1.5.0.6
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -37,8 +37,7 @@
 
 Global Const $g = 9.81
 Global $hGUI_main, $hGUI_position, $hGUI_angle, $Square_ax, $Square_ay, $Square_pax, $Square_pay, $Input_ax, $Input_ay, $Input_aalt, $Input7, $Input8, $Input9, $Input10, $Plat_h, $Plat_l
-Global $HitArray[64][3], $HitCounter = 0, $Angle_array[64][3], $Angle_counter = 0, $Solution_delta, $iAzimuth_fix, $iAngle_fix, $LockPos = 4
-
+Global $Hit_Array[64][4], $Hit_Counter = 0, $Angle_Array[64][3], $Angle_Counter = 0, $Solution_delta, $iAzimuth_fix, $iAngle_fix, $LockPos = 4, $HitLock = True
 GUI_main()
 
 Func GUI_main()
@@ -47,7 +46,6 @@ Func GUI_main()
 	$hButton2 = GUICtrlCreateButton("Позиция", 10, 10, 60, 30)
 	$hButton10 = GUICtrlCreateButton("?", 65, 65, 15, 20)
 	$hButton11 = GUICtrlCreateButton("Попадание", 70, 10, 70, 30)
-	GUICtrlSetState($hButton11, $GUI_HIDE) ;удалить после переработки коррекции
 
 	$Slider1 = GUICtrlCreateSlider(178, 350, 324, 30, BitOR($TBS_TOP, $TBS_AUTOTICKS))
 	GUICtrlSetLimit($Slider1, 100, 0)
@@ -161,7 +159,7 @@ Func GUI_main()
 
 					GUICtrlSetData($Label_solution_1, "Настильная:    " & $oSolution_1)
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & $oTime_1)
-					If $HitCounter < 64 Then $HitLock = False
+					If $Hit_Counter < 64 Then $HitLock = False
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат цели или позиции")
 					WinActivate($hGUI_main)
@@ -206,25 +204,35 @@ Func GUI_main()
 				If $HitLock = False Then
 					$tInput_tx = (StringLeft(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider1))
 					$tInput_ty = (StringRight(GUICtrlRead($Input1), 3) * 100) + (GUICtrlRead($Slider2) * -1)
-					$tAltitude = GUICtrlRead($Input2) - $Input_aalt
-					$tRange = Range_finder($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
+					$tAltitude = GUICtrlRead($Input2) - $Input_aalt - Cos(_Radian($iAngle_fix)) * $Plat_h
+					$tRange = Range_finder($Input_ax + Sin(_Radian($iAngle_fix)) * Sin(_Radian($iAzimuth_fix)) * $Plat_h, $Input_ay + Sin(_Radian($iAngle_fix)) * Cos(_Radian($iAzimuth_fix)) * $Plat_h, $tInput_tx, $tInput_ty)
 					If $tRange = 0 Then
 						$tAzimuth = ""
+						$tElevation = ""
 					Else
-						$tAzimuth = Azimuth_to($Input_ax, $Input_ay, $tInput_tx, $tInput_ty)
+						$tAzimuth = Azimuth_to($Input_ax + Sin(_Radian($iAngle_fix)) * Sin(_Radian($iAzimuth_fix)) * $Plat_h, $Input_ay + Sin(_Radian($iAngle_fix)) * Cos(_Radian($iAzimuth_fix)) * $Plat_h, $tInput_tx, $tInput_ty)
+						$tElevation = _Degree(ATan($tAltitude / $tRange))
 					EndIf
 					$tSolution = Solution($tRange, $tAltitude, $iSpeed)
 
-					If (StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0])) And (StringIsFloat($tSolution[0]) Or StringIsDigit($tSolution[0])) And ($Range > 0 Or $tRange > 0) Then
-						If $Range = 0 Then
-							$HitArray[$HitCounter][0] = $tAzimuth
-						Else
-							$HitArray[$HitCounter][0] = $Azimuth
-						EndIf
-;~ 						$HitArray[$HitCounter][1] = $Solution[0]
-;~ 						$HitArray[$HitCounter][2] = Solution_fix($HitArray[$HitCounter][0], $tSolution[0], $iAzimuth_fix, -$iAngle_fix)
-						$HitCounter += 1
-						$HitLock = True
+					If (StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0])) And ((StringIsFloat($tSolution[0]) Or StringIsDigit($tSolution[0])) Or (StringIsFloat($tSolution[1]) Or StringIsDigit($tSolution[1]))) And ($Range > 0 Or $tRange > 0) Then
+						$mbresult = MsgBox(BitOR($MB_YESNOCANCEL, $MB_ICONQUESTION, $MB_DEFBUTTON3, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Произведён навесной выстрел?")
+						Select
+							Case $mbresult = $IDYES
+								$Hit_Array[$Hit_Counter][0] = $tAzimuth
+								$Hit_Array[$Hit_Counter][1] = $tElevation
+								$Hit_Array[$Hit_Counter][2] = $tSolution[0]
+								$Hit_Array[$Hit_Counter][3] = $Solution_fix_0
+								$Hit_Counter += 1
+								$HitLock = True
+							Case $mbresult = $IDNO
+								$Hit_Array[$Hit_Counter][0] = $tAzimuth
+								$Hit_Array[$Hit_Counter][1] = $tElevation
+								$Hit_Array[$Hit_Counter][2] = $tSolution[1]
+								$Hit_Array[$Hit_Counter][3] = $Solution_fix_1
+								$Hit_Counter += 1
+								$HitLock = True
+						EndSelect
 						GUICtrlSetData($Input1, $Square_tx & $Square_ty)
 						GUICtrlSetData($Input2, $Input_talt)
 						GUICtrlSetData($Slider1, $Square_ptx)
@@ -234,7 +242,7 @@ Func GUI_main()
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный выстрел")
 					EndIf
 				Else
-					If $HitCounter < 64 Then
+					If $Hit_Counter < 64 Then
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела")
 					Else
 						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Достигнут предел массива коррекции, максимум 64")
@@ -246,13 +254,18 @@ Func GUI_main()
 EndFunc   ;==>GUI_main
 
 Func GUI_position()
+	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
+	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
+	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az, $fUp_an, $fAngle_a[2], $fAzimuth_a[2], $Old_square
+	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
+
 	$hGUI_position = GUICreate("Установка позиции батареи", 400, 440)
 	$hButton3 = GUICtrlCreateButton("Установить", 10, 400, 80, 30)
 	$hButton4 = GUICtrlCreateButton("Угловая привязка", 100, 400, 100, 30)
 	$hButton12 = GUICtrlCreateButton("Сбросить массив", 205, 400, 100, 30)
 	$hButton13 = GUICtrlCreateButton("Коррекция", 310, 400, 80, 30)
 	$hLockPos = GUICtrlCreateCheckbox("Блок.", 10, 380, 60, 20)
-	$Label_error = GUICtrlCreateLabel("", 135, 381, 300, 20, $SS_LEFT)
+	$Label_error = GUICtrlCreateLabel("Среднеквадратическое отклонение: Нет данных", 135, 381, 300, 20, $SS_LEFT)
 
 	$Input15 = GUICtrlCreateInput($Plat_h * 100, 20, 10, 30, 20, $ES_NUMBER)
 	GUICtrlCreateLabel("H:", 10, 13, 10, 20, $SS_LEFT)
@@ -291,12 +304,11 @@ Func GUI_position()
 	EndIf
 	GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 
-;~ 	If Not $Solution_delta Then
-;~ 		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
-;~ 		GUICtrlSetData($Label_error, "")
-;~ 	Else
-;~ 		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
-;~ 	EndIf
+	If Not $Solution_delta Then
+		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
+	Else
+		GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
+	EndIf
 
 	If $LockPos = 1 Then
 		GUICtrlSetState($Slider3, $GUI_DISABLE)
@@ -319,16 +331,11 @@ Func GUI_position()
 		GUICtrlSetState($hLockPos, $LockPos)
 	EndIf
 
-	;раскомментировать после переработки коррекции
-;~ 	If $HitCounter >= 3 Then
-;~ 		GUICtrlSetState($hButton4, $GUI_DISABLE)
-;~ 	Else
-;~ 		GUICtrlSetState($hButton4, $GUI_ENABLE)
-;~ 	EndIf
-
-;~ 	GUICtrlSetState($hButton4, $GUI_HIDE) ;удалить после переработки коррекции
-	GUICtrlSetState($hButton12, $GUI_HIDE) ;удалить после переработки коррекции
-	GUICtrlSetState($hButton13, $GUI_HIDE) ;удалить после переработки коррекции
+	If $Hit_Counter > 2 Then
+		GUICtrlSetState($hButton4, $GUI_DISABLE)
+	Else
+		GUICtrlSetState($hButton4, $GUI_ENABLE)
+	EndIf
 
 	GUISetState()
 
@@ -380,24 +387,126 @@ Func GUI_position()
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $hButton12
 				$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Сбросить массив коррекции?")
-				If $mbresult = 6 Then
-					$HitCounter = 0
+				If $mbresult = $IDYES Then
+					$Hit_Counter = 0
 					$Solution_delta = ""
 					GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
 					GUICtrlSetState($hButton4, $GUI_ENABLE)
 				EndIf
 				WinActivate($hGUI_position)
 			Case $hButton13
-				If $HitCounter > 0 Then
-					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Рассчитать и внести коррекцию?")
-					If $mbresult = 6 Then
-						GUISetState(@SW_DISABLE, $hGUI_position)
-;~ 						Find_error()
-						GUISetState(@SW_ENABLE, $hGUI_position)
+				$fAzimuthStep = $cfg_fAzimuthStep
+				$precision_az = $cfg_precision_az
+				$fAngleStep = $cfg_fAngleStep
+				$precision_an = $cfg_precision_an
+				$fUp_az = True
+				$fUp_an = True
+				If $Hit_Counter > 2 Then
+					$fAzimuth = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
+					If $fAzimuth = "." Then $fAzimuth = 180
+					$fAngle = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
+					If $fAngle = "." Or $fAngle = 0 Then $fAngle = 0.125
+					$Solution_delta = 0
+					For $i = 0 To $Hit_Counter - 1
+						$Solution_delta += ($Hit_Array[$i][2] - $Hit_Array[$i][1]) ^ 2
+					Next
+					$Solution_delta = Sqrt($Solution_delta / $Hit_Counter)
+					Do
+						Do
+							Do
+								$Solution_delta_old = $Solution_delta
+								If $fUp_az = True Then
+									$fAzimuth += $fAzimuthStep
+								Else
+									$fAzimuth -= $fAzimuthStep
+								EndIf
+								Select
+									Case $fAzimuth < 0
+										$fAzimuth += 360
+									Case $fAzimuth >= 360
+										$fAzimuth -= 360
+								EndSelect
+								$Solution_delta = 0
+								For $i = 0 To $Hit_Counter - 1
+									$Solution_delta += ($Hit_Array[$i][3] - oneAngle_fix($Hit_Array[$i][0], $Hit_Array[$i][1], $fAzimuth, $fAngle, $Hit_Array[$i][2])) ^ 2
+								Next
+								$Solution_delta = Sqrt($Solution_delta / $Hit_Counter)
+							Until $Solution_delta > $Solution_delta_old
+							$fAzimuthStep /= 2
+							If $fUp_az = True Then
+								$fUp_az = False
+							Else
+								$fUp_az = True
+							EndIf
+						Until $fAzimuthStep < $precision_az
+						Do
+							Do
+								$Solution_delta_old = $Solution_delta
+								If $fUp_an = True Then
+									$fAngle += $fAngleStep
+								Else
+									$fAngle -= $fAngleStep
+								EndIf
+								If $fAngle < 0 Then
+									$fAngle *= -1
+									$fUp_an = True
+									If $fAzimuth < 180 Then
+										$fAzimuth += 180
+									Else
+										$fAzimuth -= 180
+									EndIf
+								EndIf
+								If $fAngle >= 90 Then
+									$fAngle -= 90
+									If $fAzimuth < 180 Then
+										$fAzimuth += 180
+									Else
+										$fAzimuth -= 180
+									EndIf
+								EndIf
+								$Solution_delta = 0
+								For $i = 0 To $Hit_Counter - 1
+									$Solution_delta += ($Hit_Array[$i][3] - oneAngle_fix($Hit_Array[$i][0], $Hit_Array[$i][1], $fAzimuth, $fAngle, $Hit_Array[$i][2])) ^ 2
+								Next
+								$Solution_delta = Sqrt($Solution_delta / $Hit_Counter)
+							Until $Solution_delta > $Solution_delta_old
+							$fAngleStep /= 2
+							If $fUp_an = True Then
+								$fUp_an = False
+							Else
+								$fUp_an = True
+							EndIf
+						Until $fAngleStep < $precision_an
+						$fAzimuthStep = $cfg_fAzimuthStep / $iter
+						$precision_az = $cfg_precision_az / $iter
+						$fAngleStep = $cfg_fAngleStep / $iter
+						$precision_an = $cfg_precision_an / $iter
+						$iter *= 2
+					Until $precision_az < 0.00001
+					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3))
+					If $mbresult = $IDYES Then
+						$iAzimuth_fix = Round($fAzimuth, 3)
+						$iAngle_fix = Round($fAngle, 3)
+						If StringIsFloat($iAzimuth_fix) Then
+							$for_iAz = StringSplit($iAzimuth_fix, ".")
+							GUICtrlSetData($Input7, $for_iAz[1])
+							GUICtrlSetData($Input8, $for_iAz[2])
+						Else
+							GUICtrlSetData($Input7, $iAzimuth_fix)
+							GUICtrlSetData($Input8, "")
+						EndIf
+						If StringIsFloat($iAngle_fix) Then
+							$for_iAn = StringSplit($iAngle_fix, ".")
+							GUICtrlSetData($Input9, $for_iAn[1])
+							GUICtrlSetData($Input10, $for_iAn[2])
+						Else
+							GUICtrlSetData($Input9, $iAngle_fix)
+							GUICtrlSetData($Input10, "")
+						EndIf
 						GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
 					EndIf
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Не введено ни одной точки попаданий")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3")
 				EndIf
 				WinActivate($hGUI_position)
 			Case $hLockPos
@@ -430,7 +539,7 @@ Func GUI_angle()
 	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az, $fUp_an, $fAngle_a[2], $fAzimuth_a[2], $Old_square
 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
 
-	$Angle_counter = 0
+	$Angle_Counter = 0
 
 	$hGUI_angle = GUICreate("Коррекция по углам", 400, 440)
 
@@ -484,16 +593,16 @@ Func GUI_angle()
 				$precision_an = $cfg_precision_an
 				$fUp_az = True
 				$fUp_an = True
-				If $Angle_counter > 2 Then
+				If $Angle_Counter > 2 Then
 					$fAzimuth = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
 					If $fAzimuth = "." Then $fAzimuth = 180
 					$fAngle = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 					If $fAngle = "." Or $fAngle = 0 Then $fAngle = 0.125
 					$Solution_delta = 0
-					For $i = 0 To $Angle_counter - 1
-						$Solution_delta += ($Angle_array[$i][2] - Elevation($Angle_array[$i][0], $Angle_array[$i][1], $fAzimuth, $fAngle)) ^ 2
+					For $i = 0 To $Angle_Counter - 1
+						$Solution_delta += ($Angle_Array[$i][2] - Elevation($Angle_Array[$i][0], $Angle_Array[$i][1], $fAzimuth, $fAngle)) ^ 2
 					Next
-					$Solution_delta = Sqrt($Solution_delta / $Angle_counter)
+					$Solution_delta = Sqrt($Solution_delta / $Angle_Counter)
 					Do
 						Do
 							Do
@@ -510,10 +619,10 @@ Func GUI_angle()
 										$fAzimuth -= 360
 								EndSelect
 								$Solution_delta = 0
-								For $i = 0 To $Angle_counter - 1
-									$Solution_delta += ($Angle_array[$i][2] - Elevation($Angle_array[$i][0], $Angle_array[$i][1], $fAzimuth, $fAngle)) ^ 2
+								For $i = 0 To $Angle_Counter - 1
+									$Solution_delta += ($Angle_Array[$i][2] - Elevation($Angle_Array[$i][0], $Angle_Array[$i][1], $fAzimuth, $fAngle)) ^ 2
 								Next
-								$Solution_delta = Sqrt($Solution_delta / $Angle_counter)
+								$Solution_delta = Sqrt($Solution_delta / $Angle_Counter)
 							Until $Solution_delta > $Solution_delta_old
 							$fAzimuthStep /= 2
 							If $fUp_az = True Then
@@ -548,10 +657,10 @@ Func GUI_angle()
 									EndIf
 								EndIf
 								$Solution_delta = 0
-								For $i = 0 To $Angle_counter - 1
-									$Solution_delta += ($Angle_array[$i][2] - Elevation($Angle_array[$i][0], $Angle_array[$i][1], $fAzimuth, $fAngle)) ^ 2
+								For $i = 0 To $Angle_Counter - 1
+									$Solution_delta += ($Angle_Array[$i][2] - Elevation($Angle_Array[$i][0], $Angle_Array[$i][1], $fAzimuth, $fAngle)) ^ 2
 								Next
-								$Solution_delta = Sqrt($Solution_delta / $Angle_counter)
+								$Solution_delta = Sqrt($Solution_delta / $Angle_Counter)
 							Until $Solution_delta > $Solution_delta_old
 							$fAngleStep /= 2
 							If $fUp_an = True Then
@@ -567,7 +676,7 @@ Func GUI_angle()
 						$iter *= 2
 					Until $precision_az < 0.00001
 					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3))
-					If $mbresult = 6 Then
+					If $mbresult = $IDYES Then
 						$iAzimuth_fix = Round($fAzimuth, 3)
 						$iAngle_fix = Round($fAngle, 3)
 						If StringIsFloat($iAzimuth_fix) Then
@@ -587,13 +696,12 @@ Func GUI_angle()
 							GUICtrlSetData($Input10, "")
 						EndIf
 					EndIf
-					WinActivate($hGUI_angle)
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3")
-					WinActivate($hGUI_angle)
 				EndIf
+				WinActivate($hGUI_angle)
 			Case $hButton6
-				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_counter < 64 And GUICtrlRead($Input11) <> $Old_square Then
+				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_Counter < 64 And GUICtrlRead($Input11) <> $Old_square Then
 					$aSquare_x = StringLeft(GUICtrlRead($Input11), 3)
 					$aSquare_y = StringRight(GUICtrlRead($Input11), 3)
 					$aSquare_px = GUICtrlRead($Slider5)
@@ -604,16 +712,15 @@ Func GUI_angle()
 					$aRange = Range_finder($Input_ax + Sin(_Radian($iAngle_fix)) * Sin(_Radian($iAzimuth_fix)) * $Plat_h, $Input_ay + Sin(_Radian($iAngle_fix)) * Cos(_Radian($iAzimuth_fix)) * $Plat_h, $aInput_x, $aInput_y)
 					$aAzimuth = Azimuth_to($Input_ax + Sin(_Radian($iAngle_fix)) * Sin(_Radian($iAzimuth_fix)) * $Plat_h, $Input_ay + Sin(_Radian($iAngle_fix)) * Cos(_Radian($iAzimuth_fix)) * $Plat_h, $aInput_x, $aInput_y)
 					$aElevation = _Degree(ATan($aAltitude / $aRange))
-					$Angle_array[$Angle_counter][0] = $aAzimuth
-					$Angle_array[$Angle_counter][1] = $aElevation
-					$Angle_array[$Angle_counter][2] = GUICtrlRead($Input13) & "." & GUICtrlRead($Input14)
+					$Angle_Array[$Angle_Counter][0] = $aAzimuth
+					$Angle_Array[$Angle_Counter][1] = $aElevation
+					$Angle_Array[$Angle_Counter][2] = GUICtrlRead($Input13) & "." & GUICtrlRead($Input14)
 					$Old_square = GUICtrlRead($Input11)
-					$Angle_counter += 1
+					$Angle_Counter += 1
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
-					WinActivate($hGUI_angle)
 				EndIf
-
+				WinActivate($hGUI_angle)
 			Case $hButton8
 				GUICtrlSetData($Input13, GUICtrlRead($Input13) * -1)
 			Case $Slider5
@@ -734,160 +841,30 @@ Func Angle_fix($Azimuth_to, $Angle_to, $Azimuth_fix, $Angle_fix, $Solution_to_0,
 	Return $Solution
 EndFunc   ;==>Angle_fix
 
-#Region
-;~ Func Find_error()
-;~ 	Local Const $cfg_fAzimuthStep = 16, $cfg_precision_az = 4
-;~ 	Local Const $cfg_fAngleStep = 1, $cfg_precision_an = 0.25
-;~ 	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az = True, $fUp_an = True, $fAngle_a[2], $fAzimuth_a[2]
-;~ 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
-;~ 	$fAzimuthStep = $cfg_fAzimuthStep
-;~ 	$precision_az = $cfg_precision_az
-;~ 	$fAngleStep = $cfg_fAngleStep
-;~ 	$precision_an = $cfg_precision_an
-;~ 	If $HitCounter = 1 Then
-;~ 		If $iAzimuth_fix = "." Then
-;~ 			If $HitArray[0][1] > $HitArray[0][2] Then
-;~ 				$fAzimuth = $HitArray[0][0]
-;~ 			Else
-;~ 				If $HitArray[0][0] < 180 Then
-;~ 					$fAzimuth = $HitArray[0][0] + 180
-;~ 				Else
-;~ 					$fAzimuth = $HitArray[0][0] - 180
-;~ 				EndIf
-;~ 			EndIf
-;~ 		Else
-;~ 			$fAzimuth = $iAzimuth_fix
-;~ 		EndIf
-;~ 		If $iAngle_fix = "." Then
-;~ 			$fAngle = 0.125
-;~ 		Else
-;~ 			$fAngle = $iAngle_fix
-;~ 		EndIf
-;~ 		$Solution_delta = 0
-;~ 		For $i = 0 To $HitCounter - 1
-;~ 			$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-;~ 		Next
-;~ 		$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-;~ 		Do
-;~ 			Do
-;~ 				$Solution_delta_old = $Solution_delta
-;~ 				If $fUp_an = True Then
-;~ 					$fAngle += $fAngleStep
-;~ 				Else
-;~ 					$fAngle -= $fAngleStep
-;~ 				EndIf
-;~ 				If $fAngle < 0 Then
-;~ 					$fAngle *= -1
-;~ 					$fUp_an = True
-;~ 					If $fAzimuth < 180 Then
-;~ 						$fAzimuth += 180
-;~ 					Else
-;~ 						$fAzimuth -= 180
-;~ 					EndIf
-;~ 				EndIf
-;~ 				$Solution_delta = 0
-;~ 				For $i = 0 To $HitCounter - 1
-;~ 					$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-;~ 				Next
-;~ 				$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-;~ 			Until $Solution_delta >= $Solution_delta_old
-;~ 			$fAngleStep /= 2
-;~ 			If $fUp_an = True Then
-;~ 				$fUp_an = False
-;~ 			Else
-;~ 				$fUp_an = True
-;~ 			EndIf
-;~ 		Until $fAngleStep < 0.0001
-;~ 	Else
-;~ 		If $iAzimuth_fix = "." Then
-;~ 			$fAzimuth = 180
-;~ 		Else
-;~ 			$fAzimuth = $iAzimuth_fix
-;~ 		EndIf
-;~ 		If $iAngle_fix = "." Then
-;~ 			$fAngle = 0.125
-;~ 		Else
-;~ 			$fAngle = $iAngle_fix
-;~ 		EndIf
-;~ 		$Solution_delta = 0
-;~ 		For $i = 0 To $HitCounter - 1
-;~ 			$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-;~ 		Next
-;~ 		$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-;~ 		Do
-;~ 			Do
-;~ 				Do
-;~ 					$Solution_delta_old = $Solution_delta
-;~ 					If $fUp_az = True Then
-;~ 						$fAzimuth += $fAzimuthStep
-;~ 					Else
-;~ 						$fAzimuth -= $fAzimuthStep
-;~ 					EndIf
-;~ 					Select
-;~ 						Case $fAzimuth < 0
-;~ 							$fAzimuth += 360
-;~ 						Case $fAzimuth >= 360
-;~ 							$fAzimuth -= 360
-;~ 					EndSelect
-;~ 					$Solution_delta = 0
-;~ 					For $i = 0 To $HitCounter - 1
-;~ 						$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-;~ 					Next
-;~ 					$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-;~ 				Until $Solution_delta >= $Solution_delta_old
-;~ 				$fAzimuthStep /= 2
-;~ 				If $fUp_az = True Then
-;~ 					$fUp_az = False
-;~ 				Else
-;~ 					$fUp_az = True
-;~ 				EndIf
-;~ 			Until $fAzimuthStep < $precision_az
-;~ 			Do
-;~ 				Do
-;~ 					$Solution_delta_old = $Solution_delta
-;~ 					If $fUp_an = True Then
-;~ 						$fAngle += $fAngleStep
-;~ 					Else
-;~ 						$fAngle -= $fAngleStep
-;~ 					EndIf
-;~ 					If $fAngle < 0 Then
-;~ 						$fAngle *= -1
-;~ 						$fUp_an = True
-;~ 						If $fAzimuth > 180 Then
-;~ 							$fAzimuth -= 180
-;~ 						Else
-;~ 							$fAzimuth += 180
-;~ 						EndIf
-;~ 					EndIf
-;~ 					$Solution_delta = 0
-;~ 					For $i = 0 To $HitCounter - 1
-;~ 						$Solution_delta += ($HitArray[$i][1] - Solution_fix($HitArray[$i][0], $HitArray[$i][2], $fAzimuth, $fAngle)) ^ 2
-;~ 					Next
-;~ 					$Solution_delta = Sqrt($Solution_delta / $HitCounter)
-;~ 				Until $Solution_delta >= $Solution_delta_old
-;~ 				$fAngleStep /= 2
-;~ 				If $fUp_an = True Then
-;~ 					$fUp_an = False
-;~ 				Else
-;~ 					$fUp_an = True
-;~ 				EndIf
-;~ 			Until $fAngleStep < $precision_an
-;~ 			$fAzimuthStep = $cfg_fAzimuthStep / $iter
-;~ 			$precision_az = $cfg_precision_az / $iter
-;~ 			$fAngleStep = $cfg_fAngleStep / $iter
-;~ 			$precision_an = $cfg_precision_an / $iter
-;~ 			$iter *= 2
-;~ 		Until $precision_az < 0.0001
-;~ 	EndIf
-;~ 	$fAzimuth = StringFormat("%.3f", $fAzimuth)
-;~ 	$fAngle = StringFormat("%.3f", $fAngle)
-;~ 	$fAzimuth_a = StringSplit($fAzimuth, ".", $STR_NOCOUNT)
-;~ 	$fAngle_a = StringSplit($fAngle, ".", $STR_NOCOUNT)
-;~ 	GUICtrlSetData($Input7, $fAzimuth_a[0])
-;~ 	GUICtrlSetData($Input8, $fAzimuth_a[1])
-;~ 	GUICtrlSetData($Input9, $fAngle_a[0])
-;~ 	GUICtrlSetData($Input10, $fAngle_a[1])
-;~ EndFunc   ;==>Find_error
-#EndRegion
+Func oneAngle_fix($Azimuth_to, $Angle_to, $Azimuth_fix, $Angle_fix, $Solution_to)
+	Local $gv[3], $tv[3], $sv[3], $Solution, $D, $Div, $B
+	$gv[0] = 0
+	$gv[1] = Sin(_Radian($Angle_fix))
+	$gv[2] = Cos(_Radian($Angle_fix))
 
+	$tv[0] = Sin(_Radian(90 - $Angle_to)) * Sin(_Radian($Azimuth_to - $Azimuth_fix))
+	$tv[1] = Sin(_Radian(90 - $Angle_to)) * Cos(_Radian($Azimuth_to - $Azimuth_fix))
+	$tv[2] = Cos(_Radian(90 - $Angle_to))
 
+	$sv[2] = Cos(_Radian(90 - $Solution_to))
+
+	$Div = $gv[1] ^ 2 * $tv[2] ^ 2 - 2 * $gv[1] * $gv[2] * $tv[1] * $tv[2] + $gv[2] ^ 2 * $tv[0] ^ 2 + $gv[2] ^ 2 * $tv[1] ^ 2
+
+	$D = ($gv[1] * $tv[2] - $gv[2] * $tv[1]) * Sqrt(2 * $sv[2] ^ 2 * $gv[1] * $gv[2] * $tv[1] * $tv[2] - $sv[2] ^ 2 * $gv[1] ^ 2 * $tv[2] ^ 2 - $sv[2] ^ 2 * $gv[1] ^ 2 * $tv[0] ^ 2 - $sv[2] ^ 2 * $gv[2] ^ 2 * $tv[0] ^ 2 - $sv[2] ^ 2 * $gv[2] ^ 2 * $tv[1] ^ 2 + $gv[1] ^ 2 * $tv[2] ^ 2 - 2 * $gv[1] * $gv[2] * $tv[1] * $tv[2] + $gv[2] ^ 2 * $tv[0] ^ 2 + $gv[2] ^ 2 * $tv[1] ^ 2)
+	$B = $sv[2] * $gv[1] * $gv[2] * $tv[0] ^ 2
+
+	$sv[0] = ($B - $D) / $Div
+	$sv[1] = ($B + $D) / $Div
+
+	If Abs($tv[1] - $sv[0]) < Abs($tv[1] - $sv[1]) Then
+		$Solution = 90 - _Degree(ACos($gv[1] * $sv[0] + $gv[2] * $sv[2]))
+	Else
+		$Solution = 90 - _Degree(ACos($gv[1] * $sv[1] + $gv[2] * $sv[2]))
+	EndIf
+	Return $Solution
+EndFunc   ;==>oneAngle_fix
