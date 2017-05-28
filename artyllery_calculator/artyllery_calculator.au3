@@ -9,7 +9,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.5.1.0
+#AutoIt3Wrapper_Res_Fileversion=1.5.1.1
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -526,8 +526,8 @@ Func GUI_position()
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3")
 				EndIf
-				GUISetState(@SW_ENABLE, $hGUI_position)
 				WinActivate($hGUI_position)
+				GUISetState(@SW_ENABLE, $hGUI_position)
 			Case $hLockPos
 				$LockPos = GUICtrlRead($hLockPos)
 				If $LockPos = 1 Then
@@ -729,8 +729,8 @@ Func GUI_angle()
 				Else
 					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3")
 				EndIf
-				GUISetState(@SW_ENABLE, $hGUI_angle)
 				WinActivate($hGUI_angle)
+				GUISetState(@SW_ENABLE, $hGUI_angle)
 			Case $hButton6
 				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_Counter < 64 And GUICtrlRead($Input11) <> $Old_square Then
 					$aSquare_x = StringLeft(GUICtrlRead($Input11), 3)
