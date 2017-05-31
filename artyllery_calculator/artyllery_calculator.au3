@@ -1,5 +1,4 @@
-﻿#NoTrayIcon
-#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+﻿#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=doc_math_128px_1086911_easyicon.net.ico
 #AutoIt3Wrapper_Outfile=release\32\artyllery_calculator_32.exe
 #AutoIt3Wrapper_Outfile_x64=release\64\artyllery_calculator_64.exe
@@ -9,7 +8,7 @@
 #AutoIt3Wrapper_UseX64=y
 #AutoIt3Wrapper_Res_Comment=Баллистический калькулятор для игры ArmA 3
 #AutoIt3Wrapper_Res_Description=Баллистический калькулятор
-#AutoIt3Wrapper_Res_Fileversion=1.5.1.1
+#AutoIt3Wrapper_Res_Fileversion=1.5.1.2
 #AutoIt3Wrapper_Res_LegalCopyright=CC
 #AutoIt3Wrapper_Res_Language=1049
 #AutoIt3Wrapper_Res_requestedExecutionLevel=None
@@ -25,6 +24,9 @@
 	Arma 3 artyllery calculator
 
 #ce ----------------------------------------------------------------------------
+
+#NoTrayIcon
+Opt("GUICloseOnESC", 0)
 
 #include <GUIConstantsEx.au3>
 #include <GUIConstants.au3>
@@ -160,8 +162,7 @@ Func GUI_main()
 					GUICtrlSetData($Label_solution_1_ETA, "Время:             " & $oTime_1)
 					If $Hit_Counter < 64 Then $HitLock = False
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат цели или позиции")
-					WinActivate($hGUI_main)
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат цели или позиции", 0, $hGUI_main)
 				EndIf
 			Case $hButton2
 				$iAzimuth_fix = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
@@ -182,6 +183,7 @@ Func GUI_main()
 				GUICtrlSetState($Input9, $GUI_DISABLE)
 				GUICtrlSetState($Input10, $GUI_DISABLE)
 				MsgBox(BitOR($MB_ICONINFORMATION, $MB_TOPMOST), "Таблица скоростей", "Калибр: Заряд 1 / Заряд 2 / Заряд 3 / Заряд 4 / Заряд 5 " & @CRLF & @CRLF & "82мм: 70.000 / 140.000 / 200.000 / --- / --- " & @CRLF & "155мм: 153.900 / 243.000 / 388.800 / 648.000 / 810.000 " & @CRLF & "230мм: 212.500 / 425.000 / 637.500 / 772.500 / --- ")
+				WinActivate($hGUI_main)
 				GUICtrlSetState($hButton1, $GUI_ENABLE)
 				GUICtrlSetState($hButton2, $GUI_ENABLE)
 				GUICtrlSetState($hButton10, $GUI_ENABLE)
@@ -194,7 +196,6 @@ Func GUI_main()
 				GUICtrlSetState($Input8, $GUI_ENABLE)
 				GUICtrlSetState($Input9, $GUI_ENABLE)
 				GUICtrlSetState($Input10, $GUI_ENABLE)
-				WinActivate($hGUI_main)
 			Case $Slider1
 				GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 			Case $Slider2
@@ -215,7 +216,7 @@ Func GUI_main()
 					$tSolution = Solution($tRange, $tAltitude, $iSpeed)
 
 					If (StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0])) And ((StringIsFloat($tSolution[0]) Or StringIsDigit($tSolution[0])) Or (StringIsFloat($tSolution[1]) Or StringIsDigit($tSolution[1]))) And ($Range > 0 Or $tRange > 0) Then
-						$mbresult = MsgBox(BitOR($MB_YESNOCANCEL, $MB_ICONQUESTION, $MB_DEFBUTTON3, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Произведён навесной выстрел?")
+						$mbresult = MsgBox(BitOR($MB_YESNOCANCEL, $MB_ICONQUESTION, $MB_DEFBUTTON3, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Произведён навесной выстрел?", 0, $hGUI_main)
 						Select
 							Case $mbresult = $IDYES
 								If (StringIsFloat($Solution[0]) Or StringIsDigit($Solution[0])) And (StringIsFloat($tSolution[0]) Or StringIsDigit($tSolution[0])) Then
@@ -226,7 +227,7 @@ Func GUI_main()
 									$Hit_Counter += 1
 									$HitLock = True
 								Else
-									MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный навесной выстрел")
+									MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный навесной выстрел", 0, $hGUI_main)
 								EndIf
 							Case $mbresult = $IDNO
 								If (StringIsFloat($Solution[1]) Or StringIsDigit($Solution[1])) And (StringIsFloat($tSolution[1]) Or StringIsDigit($tSolution[1])) Then
@@ -237,7 +238,7 @@ Func GUI_main()
 									$Hit_Counter += 1
 									$HitLock = True
 								Else
-									MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный настильный выстрел")
+									MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитан невозможный настильный выстрел", 0, $hGUI_main)
 								EndIf
 						EndSelect
 						GUICtrlSetData($Input1, $Square_tx & $Square_ty)
@@ -246,16 +247,15 @@ Func GUI_main()
 						GUICtrlSetData($Slider2, $Square_pty)
 						GUICtrlSetPos($Graphic2, 186 + GUICtrlRead($Slider1) * 2.98, 334 - GUICtrlRead($Slider2) * -2.98)
 					Else
-						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитаны невозможные выстрелы")
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Рассчитаны невозможные выстрелы", 0, $hGUI_main)
 					EndIf
 				Else
 					If $Hit_Counter < 64 Then
-						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела")
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Блокировка", "Не произвёден рассчёт выстрела", 0, $hGUI_main)
 					Else
-						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Достигнут предел массива коррекции, максимум 64")
+						MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Достигнут предел массива коррекции, максимум 64", 0, $hGUI_main)
 					EndIf
 				EndIf
-				WinActivate($hGUI_main)
 		EndSwitch
 	WEnd
 EndFunc   ;==>GUI_main
@@ -266,7 +266,7 @@ Func GUI_position()
 	Local $iter = 1, $fAzimuth, $fAngle, $Solution_delta_old, $fUp_az, $fUp_an, $fAngle_a[2], $fAzimuth_a[2], $Old_square
 	Local $fAzimuthStep, $precision_az, $fAngleStep, $precision_an
 
-	$hGUI_position = GUICreate("Установка позиции батареи", 400, 440)
+	$hGUI_position = GUICreate("Установка позиции батареи", 400, 440, -1, -1, -1, -1, $hGUI_main)
 	$hButton3 = GUICtrlCreateButton("Установить", 10, 400, 80, 30)
 	$hButton4 = GUICtrlCreateButton("Угловая привязка", 100, 400, 100, 30)
 	$hButton12 = GUICtrlCreateButton("Сбросить массив", 205, 400, 100, 30)
@@ -364,8 +364,7 @@ Func GUI_position()
 					$Input_ax = ($Square_ax * 100) + ($Square_pax)
 					$Input_ay = ($Square_ay * 100) + ($Square_pay * -1)
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции")
-					WinActivate($hGUI_position)
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции", 0, $hGUI_position)
 				EndIf
 			Case $hButton4
 				If StringLen(GUICtrlRead($Input3)) = 6 Then
@@ -381,8 +380,7 @@ Func GUI_position()
 					GUISetState(@SW_DISABLE, $hGUI_position)
 					GUI_angle()
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции")
-					WinActivate($hGUI_position)
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат позиции", 0, $hGUI_position)
 				EndIf
 			Case $Input15
 				$Plat_h = GUICtrlRead($Input15) / 100
@@ -393,26 +391,25 @@ Func GUI_position()
 			Case $Slider4
 				GUICtrlSetPos($Graphic4, 86 + GUICtrlRead($Slider3) * 2.98, 334 - GUICtrlRead($Slider4) * -2.98)
 			Case $hButton12
-				$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Сбросить массив коррекции?")
+				$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Сбросить массив коррекции?", 0, $hGUI_position)
 				If $mbresult = $IDYES Then
 					$Hit_Counter = 0
 					$Solution_delta = ""
 					GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: Нет данных")
 					GUICtrlSetState($hButton4, $GUI_ENABLE)
 				EndIf
-				WinActivate($hGUI_position)
 			Case $hButton13
-				HotKeySet("{ESC}", "Interupter_pos")
-				GUISetState(@SW_DISABLE, $hGUI_position)
-				$fAzimuthStep = $cfg_fAzimuthStep
-				$precision_az = $cfg_precision_az
-				$fAngleStep = $cfg_fAngleStep
-				$precision_an = $cfg_precision_an
-				$fUp_az = True
-				$fUp_an = True
 				If $Hit_Counter > 2 Then
+					HotKeySet("{ESC}", "Interupter_pos")
+					GUISetState(@SW_DISABLE, $hGUI_position)
+					$fAzimuthStep = $cfg_fAzimuthStep
+					$precision_az = $cfg_precision_az
+					$fAngleStep = $cfg_fAngleStep
+					$precision_an = $cfg_precision_an
+					$fUp_az = True
+					$fUp_an = True
 					$fAzimuth = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
-					If $fAzimuth = "." Then $fAzimuth = 180
+					If $fAzimuth = "." Or $fAzimuth = 0 Then $fAzimuth = 2
 					$fAngle = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 					If $fAngle = "." Or $fAngle = 0 Then $fAngle = 0.125
 					$Solution_delta = 0
@@ -434,9 +431,9 @@ Func GUI_position()
 									$fAzimuth -= $fAzimuthStep
 								EndIf
 								Select
-									Case $fAzimuth < 0
+									Case $fAzimuth <= 0
 										$fAzimuth += 360
-									Case $fAzimuth >= 360
+									Case $fAzimuth > 360
 										$fAzimuth -= 360
 								EndSelect
 								$Solution_delta = 0
@@ -467,15 +464,16 @@ Func GUI_position()
 								If $fAngle < 0 Then
 									$fAngle *= -1
 									$fUp_an = True
-									If $fAzimuth < 180 Then
+									If $fAzimuth <= 180 Then
 										$fAzimuth += 180
 									Else
 										$fAzimuth -= 180
 									EndIf
 								EndIf
-								If $fAngle >= 90 Then
-									$fAngle -= 90
-									If $fAzimuth < 180 Then
+								If $fAngle > 90 Then
+									$fAngle = 180 - $fAngle
+									$fUp_an = False
+									If $fAzimuth <= 180 Then
 										$fAzimuth += 180
 									Else
 										$fAzimuth -= 180
@@ -501,7 +499,7 @@ Func GUI_position()
 						$iter *= 2
 					Until $precision_az < 0.00001
 					HotKeySet("{ESC}")
-					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3))
+					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3), 0, $hGUI_position)
 					If $mbresult = $IDYES Then
 						$iAzimuth_fix = Round($fAzimuth, 3)
 						$iAngle_fix = Round($fAngle, 3)
@@ -524,9 +522,8 @@ Func GUI_position()
 						GUICtrlSetData($Label_error, "Среднеквадратическое отклонение: " & StringFormat("%.4f", $Solution_delta))
 					EndIf
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3", 0, $hGUI_position)
 				EndIf
-				WinActivate($hGUI_position)
 				GUISetState(@SW_ENABLE, $hGUI_position)
 			Case $hLockPos
 				$LockPos = GUICtrlRead($hLockPos)
@@ -560,7 +557,7 @@ Func GUI_angle()
 
 	$Angle_Counter = 0
 
-	$hGUI_angle = GUICreate("Коррекция по углам", 400, 440)
+	$hGUI_angle = GUICreate("Коррекция по угломеру", 400, 440, -1, -1, -1, -1, $hGUI_position)
 
 	$hButton5 = GUICtrlCreateButton("Рассчитать", 10, 400, 80, 30)
 
@@ -606,17 +603,17 @@ Func GUI_angle()
 				GUIDelete($hGUI_angle)
 				ExitLoop
 			Case $hButton5
-				HotKeySet("{ESC}", "Interupter_ang")
-				GUISetState(@SW_DISABLE, $hGUI_angle)
-				$fAzimuthStep = $cfg_fAzimuthStep
-				$precision_az = $cfg_precision_az
-				$fAngleStep = $cfg_fAngleStep
-				$precision_an = $cfg_precision_an
-				$fUp_az = True
-				$fUp_an = True
 				If $Angle_Counter > 2 Then
+					HotKeySet("{ESC}", "Interupter_ang")
+					GUISetState(@SW_DISABLE, $hGUI_angle)
+					$fAzimuthStep = $cfg_fAzimuthStep
+					$precision_az = $cfg_precision_az
+					$fAngleStep = $cfg_fAngleStep
+					$precision_an = $cfg_precision_an
+					$fUp_az = True
+					$fUp_an = True
 					$fAzimuth = GUICtrlRead($Input7) & "." & GUICtrlRead($Input8)
-					If $fAzimuth = "." Then $fAzimuth = 180
+					If $fAzimuth = "." Or $fAzimuth = 0 Then $fAzimuth = 2
 					$fAngle = GUICtrlRead($Input9) & "." & GUICtrlRead($Input10)
 					If $fAngle = "." Or $fAngle = 0 Then $fAngle = 0.125
 					$Solution_delta = 0
@@ -638,9 +635,9 @@ Func GUI_angle()
 									$fAzimuth -= $fAzimuthStep
 								EndIf
 								Select
-									Case $fAzimuth < 0
+									Case $fAzimuth <= 0
 										$fAzimuth += 360
-									Case $fAzimuth >= 360
+									Case $fAzimuth > 360
 										$fAzimuth -= 360
 								EndSelect
 								$Solution_delta = 0
@@ -671,15 +668,16 @@ Func GUI_angle()
 								If $fAngle < 0 Then
 									$fAngle *= -1
 									$fUp_an = True
-									If $fAzimuth < 180 Then
+									If $fAzimuth <= 180 Then
 										$fAzimuth += 180
 									Else
 										$fAzimuth -= 180
 									EndIf
 								EndIf
 								If $fAngle >= 90 Then
-									$fAngle -= 90
-									If $fAzimuth < 180 Then
+									$fAngle = 180 - $fAngle
+									$fUp_an = False
+									If $fAzimuth <= 180 Then
 										$fAzimuth += 180
 									Else
 										$fAzimuth -= 180
@@ -705,7 +703,7 @@ Func GUI_angle()
 						$iter *= 2
 					Until $precision_az < 0.00001
 					HotKeySet("{ESC}")
-					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3))
+					$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Внести коррекцию?" & @CRLF & @CRLF & @CRLF & "Азимут: " & Round($fAzimuth, 3) & @CRLF & "Угол: " & Round($fAngle, 3) & @CRLF & @CRLF & "Ошибка: " & Round($Solution_delta, 3), 0, $hGUI_angle)
 					If $mbresult = $IDYES Then
 						$iAzimuth_fix = Round($fAzimuth, 3)
 						$iAngle_fix = Round($fAngle, 3)
@@ -727,12 +725,11 @@ Func GUI_angle()
 						EndIf
 					EndIf
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Недостаточно данных, минимально 3", 0, $hGUI_angle)
 				EndIf
-				WinActivate($hGUI_angle)
 				GUISetState(@SW_ENABLE, $hGUI_angle)
 			Case $hButton6
-				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_Counter < 64 And GUICtrlRead($Input11) <> $Old_square Then
+				If StringLen(GUICtrlRead($Input11)) = 6 And $Angle_Counter < 64 And GUICtrlRead($Input11) <> $Old_square And GUICtrlRead($Input11) <> StringLeft($Square_ax, 3) & StringLeft($Square_ay, 3) Then
 					$aSquare_x = StringLeft(GUICtrlRead($Input11), 3)
 					$aSquare_y = StringRight(GUICtrlRead($Input11), 3)
 					$aSquare_px = GUICtrlRead($Slider5)
@@ -749,9 +746,8 @@ Func GUI_angle()
 					$Old_square = GUICtrlRead($Input11)
 					$Angle_Counter += 1
 				Else
-					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира")
+					MsgBox(BitOR($MB_ICONERROR, $MB_TASKMODAL, $MB_TOPMOST), "Ошибка", "Неверно введён квадрат ориентира", 0, $hGUI_angle)
 				EndIf
-				WinActivate($hGUI_angle)
 			Case $hButton8
 				GUICtrlSetData($Input13, GUICtrlRead($Input13) * -1)
 			Case $Slider5
@@ -890,14 +886,12 @@ Func Angle_fix($Azimuth_to, $Angle_to, $Azimuth_fix, $Angle_fix, $Solution_to)
 EndFunc   ;==>Angle_fix
 
 Func Interupter_pos()
-	$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Прервать итерации?")
+	$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Прервать итерации?", 0, $hGUI_position)
 	If $mbresult = $IDYES Then $Interupt = True
-	WinActivate($hGUI_position)
 EndFunc   ;==>Interupter_pos
 
 Func Interupter_ang()
-	$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Прервать итерации?")
+	$mbresult = MsgBox(BitOR($MB_YESNO, $MB_ICONQUESTION, $MB_DEFBUTTON2, $MB_TASKMODAL, $MB_TOPMOST), "Внимание", "Прервать итерации?", 0, $hGUI_angle)
 	If $mbresult = $IDYES Then $Interupt = True
-	WinActivate($hGUI_angle)
 EndFunc   ;==>Interupter_ang
 
